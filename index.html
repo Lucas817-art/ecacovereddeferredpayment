@@ -268,6 +268,13 @@ footer{max-width:1560px;margin:0 auto;padding:0 24px 26px;font-size:10px;color:#
 
 .srclink{color:#2f6fa8;text-decoration:none;font-weight:650;padding:0 1px}
 .liveinfo{font-size:10px;color:#7d8b9c;display:block;flex:1 1 100%;min-width:0;line-height:1.4}
+.ptable{width:100%;border-collapse:collapse;margin:2px 0 8px;font-size:11px;border:1px solid #dde3ea;border-radius:6px;overflow:hidden}
+.ptable th,.ptable td{padding:5px 6px;text-align:center;border-bottom:1px solid #eef1f5;color:#5a6a7a}
+.ptable th{background:#f6f8fb;font-weight:600;color:#3d4c5c}
+.ptable tr:last-child td{border-bottom:none}
+.ptable td[data-cls]{cursor:pointer}
+.ptable td[data-cls]:hover{background:#f3f7ff}
+.ptable td.on{background:#eaf2ff;color:#1f5fbf;font-weight:700}
 .liveinfo.ok{color:#0a8f5b}
 .liveinfo.err{color:#c0392b}
 .dot{width:6px;height:6px;border-radius:50%;background:#c3cdd8;display:inline-block;vertical-align:middle;margin-right:4px}
@@ -447,9 +454,14 @@ html[dir="rtl"] .fxmenu{left:0;right:auto}
       <div class="switch" id="inFree" role="switch" aria-checked="false"></div>
     </div>
     <div class="field">
+      <div class="fl"><span data-i18n="fPass"></span></div>
+      <div class="switch on" id="inPass" role="switch" aria-checked="true"></div>
+    </div>
+    <div class="field">
       <label class="fl" for="inRate" data-i18n="fRate"></label>
       <div class="inp"><input id="inRate" type="text" inputmode="decimal"><span class="sfx">%</span></div>
     </div>
+    <div class="hintline" id="hPass"></div>
     <div class="field">
       <label class="fl" for="inBasis" data-i18n="fBasis"></label>
       <div class="inp"><select id="inBasis"><option value="360">360</option><option value="365">365</option></select></div>
@@ -470,16 +482,22 @@ html[dir="rtl"] .fxmenu{left:0;right:auto}
       <label class="fl" for="inPremRate" data-i18n="fPremRate"></label>
       <div class="inp"><input id="inPremRate" type="text" inputmode="decimal"><span class="sfx">%</span></div>
     </div>
-    <div class="hintline" data-i18n="premRateHint"></div>
+    <table class="ptable" id="premGrid">
+      <thead><tr><th data-i18n="gridTenor"></th><th data-i18n="clsA"></th><th data-i18n="clsB"></th><th data-i18n="clsC"></th></tr></thead>
+      <tbody>
+        <tr><td data-i18n="grid3y"></td><td data-cls="A">1.00%</td><td data-cls="B">1.50%</td><td data-cls="C">2.50%</td></tr>
+        <tr><td data-i18n="grid10y"></td><td data-cls="A">2.15%</td><td data-cls="B">2.86%</td><td data-cls="C">5.36%</td></tr>
+      </tbody>
+    </table>
+    <div class="hintline" id="hPremRate"></div>
+    <div class="field">
+      <label class="fl" for="inPremClass" data-i18n="fPremClass"></label>
+      <div class="inp"><select id="inPremClass"><option value="A" data-i18n="clsA"></option><option value="B" data-i18n="clsB"></option><option value="C" data-i18n="clsC"></option></select></div>
+    </div>
     <div class="field">
       <label class="fl" for="inPremBasis" data-i18n="fPremBasis"></label>
       <div class="inp"><select id="inPremBasis"><option value="PI" data-i18n="optPI"></option><option value="P" data-i18n="optP"></option></select></div>
     </div>
-    <div class="field">
-      <label class="fl" for="inPremFin" data-i18n="fPremFin"></label>
-      <div class="inp"><input id="inPremFin" type="text" inputmode="decimal"><span class="sfx">%</span></div>
-    </div>
-    <div class="hintline" id="hPremFin"></div>
     <div class="livebar">
       <button type="button" id="btnLive" class="chipbtn"><span>⟳</span><span data-i18n="liveBtn"></span></button>
       <span class="liveinfo" id="liveInfo"></span>
@@ -552,9 +570,19 @@ html[dir="rtl"] .fxmenu{left:0;right:auto}
         </div>
         <div class="fxrows">
           <div class="fr"><span data-i18n="premPrepayRow"></span><b id="premPrepay">—</b></div>
-          <div class="fr"><span data-i18n="premFinRow"></span><b id="premFinanced">—</b></div>
           <div class="fr"><span data-i18n="premNoteRow"></span><b id="premBasisTxt">—</b></div>
         </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3 data-i18n="secWal"></h3><div class="meta" data-i18n="walNote"></div></div>
+        <div class="irrgrid">
+          <div class="irrcell hero"><div class="kl" data-i18n="walLabel"></div><div class="kv" id="kWal">—</div></div>
+          <div class="irrcell"><div class="kl" data-i18n="walMonths"></div><div class="kv small" id="kWalMo">—</div></div>
+        </div>
+        <div class="fxrows">
+          <div class="fr"><span data-i18n="walNominal"></span><b id="walNominal">—</b></div>
+        </div>
+        <div class="note" data-i18n="walFormulaTxt"></div>
       </div>
       <div class="card">
         <div class="card-head"><h3 data-i18n="secFxLoss"></h3><div class="meta" id="fxLossMeta"></div></div>
@@ -958,6 +986,31 @@ var DICT = {
   sensNote: ['同一笔合同，仅改变还款频率；频率越高利息越少、卖方资金占用越短。', 'Same contract, frequency only; more frequent payments reduce interest and funding period.', 'Même contrat, seule la fréquence change ; des paiements plus fréquents réduisent les intérêts.'],
   secBuyerTerms: ['买方付款条件', 'Buyer payment terms', 'Conditions de paiement acheteur'],
   secPrem: ['ECA 保费（出口商承担）', 'ECA premium (borne by exporter)', 'Prime ECA (à la charge de l’exportateur)'],
+  fPremClass: ['国别类别', 'Country class', 'Catégorie pays'],
+  fPass: ['买方利率=卖方All-in', 'Buyer rate = seller all-in', 'Taux acheteur = coût global'],
+  freq1: ['年付（每年1次）', 'Annual (1/yr)', 'Annuel (1/an)'],
+  freq2: ['半年付（每年2次）', 'Semi-annual (2/yr)', 'Semestriel (2/an)'],
+  freq4: ['季付（每年4次）', 'Quarterly (4/yr)', 'Trimestriel (4/an)'],
+  freq12: ['月付（每年12次）', 'Monthly (12/yr)', 'Mensuel (12/an)'],
+  secWal: ['加权平均年限', 'Weighted average life', 'Durée moyenne pondérée'],
+  walNote: ['按延期本金实际占用时间加权', 'Weighted by deferred principal outstanding', 'Pondérée par l’encours différé'],
+  walLabel: ['加权平均年限', 'Weighted average life', 'Durée moyenne pondérée'],
+  walMonths: ['折合月数', 'In months', 'En mois'],
+  walNominal: ['还款期（另加宽限）', 'Repayment tenor (plus grace)', 'Durée (hors différé)'],
+  walFormula: ['计算方法', 'Method', 'Méthode'],
+  walFormulaTxt: ['加权年限＝Σ(每期本金×占用天数)÷延期本金÷365', 'WAL = Σ(principal×days outstanding)÷deferred÷365', 'WAL = Σ(principal×jours)÷différé÷365'],
+  walUnit: ['年', 'yrs', 'ans'],
+  passOn: ['已联动：买方利率自动取卖方全口径成本 {r}%', 'Linked: buyer rate follows seller all-in cost {r}%', 'Lié : taux acheteur = coût global {r}%'],
+  passOff: ['未联动：可手动输入买方利率', 'Unlinked: enter buyer rate manually', 'Non lié : saisie manuelle'],
+  passShort: ['联动卖方All-in', 'follows seller all-in', 'suit le coût global'],
+  clsA: ['A类', 'Class A', 'Classe A'],
+  clsB: ['B类', 'Class B', 'Classe B'],
+  clsC: ['C类', 'Class C', 'Classe C'],
+  gridTenor: ['还款期', 'Repayment tenor', 'Durée'],
+  grid3y: ['3年', '3 years', '3 ans'],
+  grid10y: ['10年', '10 years', '10 ans'],
+  premApply: ['适用', 'applies', 'applicable'],
+  premInterp: ['按3Y–10Y线性插值', 'linear 3Y–10Y', 'interpolation 3Y–10Y'],
   fPremRate: ['保费费率', 'Premium rate', 'Taux de prime'],
   premRateHint: ['参考：3年期 A/B/C 类 1.00%/1.50%/2.50%，10年期 2.15%/2.86%/5.36%', 'Ref: 3Y class A/B/C 1.00%/1.50%/2.50%; 10Y 2.15%/2.86%/5.36%', 'Réf. : 3 ans A/B/C 1,00 %/1,50 %/2,50 % ; 10 ans 2,15 %/2,86 %/5,36 %'],
   fPremBasis: ['保费计费基础', 'Premium basis', 'Base de prime'],
@@ -965,12 +1018,12 @@ var DICT = {
   optP: ['仅本金', 'Principal only', 'Principal seul'],
   fPremFin: ['保费融资比例', 'Premium financing', 'Financement de la prime'],
   secPremCard: ['保费成本', 'Premium cost', 'Coût de la prime'],
-  premCardNote: ['一次性、放款前支付；可融资部分计入银行融资', 'One-off, paid before drawdown; financed part added to the bank facility', 'Paiement unique avant tirage ; la part financée s’ajoute au crédit bancaire'],
+  premCardNote: ['一次性、提款前由出口商自付；卖贷不做保费融资', 'One-off, paid by the exporter before drawdown; no premium financing in seller credit', 'Paiement unique par l’exportateur avant tirage ; pas de financement de la prime'],
   premAmt: ['保费总额', 'Total premium', 'Prime totale'],
   premBaseAmt: ['保险金额（计费基数）', 'Insured amount (basis)', 'Montant assuré (base)'],
   premOfDeferred: ['占延期本金', 'of deferred principal', 'du principal différé'],
   premBp: ['平摊到全口径', 'Spread to all-in', 'Étalement sur le coût global'],
-  premPrepayRow: ['其中出口商自付', 'Paid upfront by exporter', 'Payé comptant par l’exportateur'],
+  premPrepayRow: ['出口商实付（提款前）', 'Paid by exporter (before drawdown)', 'Payé par l’exportateur (avant tirage)'],
   premFinRow: ['其中融资', 'Financed', 'Financé'],
   premNoteRow: ['计费口径', 'Basis', 'Base de calcul'],
   secFxLoss: ['中长期汇率损失（掉期点）', 'Medium/long-term FX loss (swap points)', 'Perte de change moyen/long terme (points de swap)'],
@@ -1132,12 +1185,12 @@ ar: {
 
 
 var FXK = {
-  zh: { curHint: '切换币种按实时汇率折算合同金额，可手动锁定', fxManual: '手动', fxReset: '恢复实时', fxEditHint: '点击数字可手动锁定汇率，用于报价或锁汇。', fxEquiv: '合同金额折合', fxLive: '实时汇率', fxIdle: '汇率未更新', fxFail: '实时汇率获取失败，可手动填写', fxRate: '汇率', fxNeed: '请先在 FX 面板填写汇率', fxRefresh: '刷新', fxSrc: '汇率源',  swapLiveBtn: '刷新{t}掉期点', swapLiveBusy: '刷新中…', swapLiveOk: '已更新', swapLiveFail: '获取失败，保留当前值（可手动修改）', swapSrcLive: '在线', swapSrcDefault: '默认值', swapSrcManual: '手动', swapLiveSnap: '最新公布值' },
-  en: { curHint: 'Currency switch converts the contract amount at live FX; rates can be locked manually', fxManual: 'Manual', fxReset: 'Restore live', fxEditHint: 'Click a rate to lock it manually, for quoting or hedging.', fxEquiv: 'Contract equivalent', fxLive: 'Live FX', fxIdle: 'FX not updated', fxFail: 'Live FX failed — enter rates manually', fxRate: 'FX rate', fxNeed: 'Enter FX rates in the FX panel first', fxRefresh: 'Refresh', fxSrc: 'Source',  swapLiveBtn: 'Refresh {t} swap pips', swapLiveBusy: 'Refreshing…', swapLiveOk: 'Updated', swapLiveFail: 'Fetch failed; value kept (editable)', swapSrcLive: 'live', swapSrcDefault: 'default', swapSrcManual: 'manual', swapLiveSnap: 'latest published' },
-  fr: { curHint: 'Le changement de devise convertit le montant au taux du marché ; taux verrouillables', fxManual: 'Manuel', fxReset: 'Rétablir live', fxEditHint: 'Cliquez sur un taux pour le verrouiller (couverture ou cotation).', fxEquiv: 'Contrat équivalent', fxLive: 'Taux du marché', fxIdle: 'Taux non actualisé', fxFail: 'Taux indisponible — saisir manuellement', fxRate: 'Taux de change', fxNeed: 'Saisissez d’abord les taux dans le panneau FX', fxRefresh: 'Actualiser', fxSrc: 'Source',  swapLiveBtn: 'Actualiser les points {t}', swapLiveBusy: 'Actualisation…', swapLiveOk: 'Mis à jour', swapLiveFail: 'Échec ; valeur conservée (modifiable)', swapSrcLive: 'en ligne', swapSrcDefault: 'valeur par défaut', swapSrcManual: 'manuel', swapLiveSnap: 'dernière valeur publiée' },
-  pt: { curHint: 'A mudança de moeda converte o valor do contrato à taxa de mercado; taxas podem ser fixadas', fxManual: 'Manual', fxReset: 'Repor taxa live', fxEditHint: 'Clique num valor para fixar a taxa (cobertura ou cotação).', fxEquiv: 'Equivalente do contrato', fxLive: 'Taxa de mercado', fxIdle: 'Taxa não atualizada', fxFail: 'Taxa indisponível — introduza manualmente', fxRate: 'Taxa de câmbio', fxNeed: 'Introduza primeiro as taxas no painel FX', fxRefresh: 'Atualizar', fxSrc: 'Fonte',  swapLiveBtn: 'Atualizar pontos {t}', swapLiveBusy: 'A atualizar…', swapLiveOk: 'Atualizado', swapLiveFail: 'Falha ao obter; valor mantido (editável)', swapSrcLive: 'em linha', swapSrcDefault: 'predefinido', swapSrcManual: 'manual' },
-  es: { curHint: 'El cambio de moneda convierte el importe al tipo de mercado; tipos pueden fijarse', fxManual: 'Manual', fxReset: 'Restaurar live', fxEditHint: 'Haz clic en un tipo para fijarlo (cobertura o cotización).', fxEquiv: 'Equivalente del contrato', fxLive: 'Tipo de mercado', fxIdle: 'Tipo no actualizado', fxFail: 'Tipo no disponible — introduce manualmente', fxRate: 'Tipo de cambio', fxNeed: 'Introduce primero los tipos en el panel FX', fxRefresh: 'Actualizar', fxSrc: 'Fuente',  swapLiveBtn: 'Actualizar puntos {t}', swapLiveBusy: 'Actualizando…', swapLiveOk: 'Actualizado', swapLiveFail: 'Error; valor mantenido (editable)', swapSrcLive: 'en vivo', swapSrcDefault: 'predeterminado', swapSrcManual: 'manual' },
-  ar: { curHint: 'يُحوَّل مبلغ العقد بسعر الصرف الفوري عند تغيير العملة، ويمكن تثبيت الأسعار يدوياً', fxManual: 'يدوي', fxReset: 'استعادة الفوري', fxEditHint: 'انقر على السعر لتثبيته يدوياً للعرض أو التحوط.', fxEquiv: 'مبلغ العقد المكافئ', fxLive: 'سعر الصرف الفوري', fxIdle: 'لم يتم تحديث السعر', fxFail: 'تعذر جلب السعر — أدخل القيم يدوياً', fxRate: 'سعر الصرف', fxNeed: 'أدخل أسعار الصرف في لوحة FX أولاً', fxRefresh: 'تحديث', fxSrc: 'المصدر',  swapLiveBtn: 'تحديث نقاط المبادلة {t}', swapLiveBusy: 'جارٍ التحديث…', swapLiveOk: 'تم التحديث', swapLiveFail: 'فشل الجلب؛ تم الاحتفاظ بالقيمة', swapSrcLive: 'مباشر', swapSrcDefault: 'القيمة الافتراضية', swapSrcManual: 'يدوي', swapLiveSnap: 'أحدث قيمة منشورة' }
+  zh: { curHint: '切换币种按实时汇率折算合同金额，可手动锁定', fxManual: '手动', fxReset: '恢复实时', fxEditHint: '点击数字可手动锁定汇率，用于报价或锁汇。', fxEquiv: '合同金额折合', fxLive: '实时汇率', fxIdle: '汇率未更新', fxFail: '实时汇率获取失败，可手动填写', fxRate: '汇率', fxNeed: '请先在 FX 面板填写汇率', fxRefresh: '刷新', fxSrc: '汇率源',  fPremClass: '国别类别', clsA: 'A类', clsB: 'B类', clsC: 'C类', gridTenor: '还款期', grid3y: '3年', grid10y: '10年', premApply: '适用', premInterp: '按3Y–10Y线性插值', secWal: '加权平均年限', walNote: '按延期本金实际占用时间加权', walLabel: '加权平均年限', walMonths: '折合月数', walNominal: '还款期（另加宽限）', walFormulaTxt: '加权年限＝Σ(每期本金×占用天数)÷延期本金÷365', walUnit: '年', freq1: '年付（每年1次）', freq2: '半年付（每年2次）', freq4: '季付（每年4次）', freq12: '月付（每年12次）', fPass: '买方利率=卖方All-in', passOn: '已联动：买方利率自动取卖方全口径成本 {r}%', passOff: '未联动：可手动输入买方利率', passShort: '联动卖方All-in', swapLiveBtn: '刷新{t}掉期点', swapLiveBusy: '刷新中…', swapLiveOk: '已更新', swapLiveFail: '获取失败，保留当前值（可手动修改）', swapSrcLive: '在线', swapSrcDefault: '默认值', swapSrcManual: '手动', swapLiveSnap: '最新公布值' },
+  en: { curHint: 'Currency switch converts the contract amount at live FX; rates can be locked manually', fxManual: 'Manual', fxReset: 'Restore live', fxEditHint: 'Click a rate to lock it manually, for quoting or hedging.', fxEquiv: 'Contract equivalent', fxLive: 'Live FX', fxIdle: 'FX not updated', fxFail: 'Live FX failed — enter rates manually', fxRate: 'FX rate', fxNeed: 'Enter FX rates in the FX panel first', fxRefresh: 'Refresh', fxSrc: 'Source',  fPremClass: 'Country class', clsA: 'Class A', clsB: 'Class B', clsC: 'Class C', gridTenor: 'Repayment tenor', grid3y: '3 years', grid10y: '10 years', premApply: 'applies', premInterp: 'linear 3Y–10Y', secWal: 'Weighted average life', walNote: 'Weighted by deferred principal outstanding', walLabel: 'Weighted average life', walMonths: 'In months', walNominal: 'Repayment tenor (plus grace)', walFormulaTxt: 'WAL = Σ(principal×days outstanding)÷deferred÷365', walUnit: 'yrs', freq1: 'Annual (1/yr)', freq2: 'Semi-annual (2/yr)', freq4: 'Quarterly (4/yr)', freq12: 'Monthly (12/yr)', fPass: 'Buyer rate = seller all-in', passOn: 'Linked: buyer rate follows seller all-in cost {r}%', passOff: 'Unlinked: enter buyer rate manually', passShort: 'follows seller all-in', swapLiveBtn: 'Refresh {t} swap pips', swapLiveBusy: 'Refreshing…', swapLiveOk: 'Updated', swapLiveFail: 'Fetch failed; value kept (editable)', swapSrcLive: 'live', swapSrcDefault: 'default', swapSrcManual: 'manual', swapLiveSnap: 'latest published' },
+  fr: { curHint: 'Le changement de devise convertit le montant au taux du marché ; taux verrouillables', fxManual: 'Manuel', fxReset: 'Rétablir live', fxEditHint: 'Cliquez sur un taux pour le verrouiller (couverture ou cotation).', fxEquiv: 'Contrat équivalent', fxLive: 'Taux du marché', fxIdle: 'Taux non actualisé', fxFail: 'Taux indisponible — saisir manuellement', fxRate: 'Taux de change', fxNeed: 'Saisissez d’abord les taux dans le panneau FX', fxRefresh: 'Actualiser', fxSrc: 'Source',  fPremClass: 'Catégorie pays', clsA: 'Classe A', clsB: 'Classe B', clsC: 'Classe C', gridTenor: 'Durée', grid3y: '3 ans', grid10y: '10 ans', premApply: 'applicable', premInterp: 'interpolation 3Y–10Y', secWal: 'Durée moyenne pondérée', walNote: 'Pondérée par l’encours différé', walLabel: 'Durée moyenne pondérée', walMonths: 'En mois', walNominal: 'Durée (hors différé)', walFormulaTxt: 'WAL = Σ(principal×jours)÷différé÷365', walUnit: 'ans', freq1: 'Annuel (1/an)', freq2: 'Semestriel (2/an)', freq4: 'Trimestriel (4/an)', freq12: 'Mensuel (12/an)', fPass: 'Taux acheteur = coût global', passOn: 'Lié : taux acheteur = coût global {r}%', passOff: 'Non lié : saisie manuelle', passShort: 'suit le coût global', swapLiveBtn: 'Actualiser les points {t}', swapLiveBusy: 'Actualisation…', swapLiveOk: 'Mis à jour', swapLiveFail: 'Échec ; valeur conservée (modifiable)', swapSrcLive: 'en ligne', swapSrcDefault: 'valeur par défaut', swapSrcManual: 'manuel', swapLiveSnap: 'dernière valeur publiée' },
+  pt: { curHint: 'A mudança de moeda converte o valor do contrato à taxa de mercado; taxas podem ser fixadas', fxManual: 'Manual', fxReset: 'Repor taxa live', fxEditHint: 'Clique num valor para fixar a taxa (cobertura ou cotação).', fxEquiv: 'Equivalente do contrato', fxLive: 'Taxa de mercado', fxIdle: 'Taxa não atualizada', fxFail: 'Taxa indisponível — introduza manualmente', fxRate: 'Taxa de câmbio', fxNeed: 'Introduza primeiro as taxas no painel FX', fxRefresh: 'Atualizar', fxSrc: 'Fonte',  fPremClass: 'Classe de país', clsA: 'Classe A', clsB: 'Classe B', clsC: 'Classe C', gridTenor: 'Prazo', grid3y: '3 anos', grid10y: '10 anos', premApply: 'aplicável', premInterp: 'interpolação 3A–10A', secWal: 'Duração média ponderada', walNote: 'Ponderada pelo saldo diferido', walLabel: 'Duração média ponderada', walMonths: 'Em meses', walNominal: 'Prazo (mais carência)', walFormulaTxt: 'WAL = Σ(principal×dias)÷diferido÷365', walUnit: 'anos', freq1: 'Anual (1/ano)', freq2: 'Semestral (2/ano)', freq4: 'Trimestral (4/ano)', freq12: 'Mensal (12/ano)', fPass: 'Taxa do comprador = custo total', passOn: 'Ligado: taxa do comprador = custo total {r}%', passOff: 'Não ligado: introduza a taxa manualmente', passShort: 'segue custo total', swapLiveBtn: 'Atualizar pontos {t}', swapLiveBusy: 'A atualizar…', swapLiveOk: 'Atualizado', swapLiveFail: 'Falha ao obter; valor mantido (editável)', swapSrcLive: 'em linha', swapSrcDefault: 'predefinido', swapSrcManual: 'manual' },
+  es: { curHint: 'El cambio de moneda convierte el importe al tipo de mercado; tipos pueden fijarse', fxManual: 'Manual', fxReset: 'Restaurar live', fxEditHint: 'Haz clic en un tipo para fijarlo (cobertura o cotización).', fxEquiv: 'Equivalente del contrato', fxLive: 'Tipo de mercado', fxIdle: 'Tipo no actualizado', fxFail: 'Tipo no disponible — introduce manualmente', fxRate: 'Tipo de cambio', fxNeed: 'Introduce primero los tipos en el panel FX', fxRefresh: 'Actualizar', fxSrc: 'Fuente',  fPremClass: 'Clase de país', clsA: 'Clase A', clsB: 'Clase B', clsC: 'Clase C', gridTenor: 'Plazo', grid3y: '3 años', grid10y: '10 años', premApply: 'aplicable', premInterp: 'interpolación 3A–10A', secWal: 'Duración media ponderada', walNote: 'Ponderada por el saldo diferido', walLabel: 'Duración media ponderada', walMonths: 'En meses', walNominal: 'Plazo (más carencia)', walFormulaTxt: 'WAL = Σ(principal×días)÷diferido÷365', walUnit: 'años', freq1: 'Anual (1/año)', freq2: 'Semestral (2/año)', freq4: 'Trimestral (4/año)', freq12: 'Mensual (12/año)', fPass: 'Tipo comprador = coste total', passOn: 'Vinculado: tipo comprador = coste total {r}%', passOff: 'No vinculado: introduzca el tipo manualmente', passShort: 'sigue coste total', swapLiveBtn: 'Actualizar puntos {t}', swapLiveBusy: 'Actualizando…', swapLiveOk: 'Actualizado', swapLiveFail: 'Error; valor mantenido (editable)', swapSrcLive: 'en vivo', swapSrcDefault: 'predeterminado', swapSrcManual: 'manual' },
+  ar: { curHint: 'يُحوَّل مبلغ العقد بسعر الصرف الفوري عند تغيير العملة، ويمكن تثبيت الأسعار يدوياً', fxManual: 'يدوي', fxReset: 'استعادة الفوري', fxEditHint: 'انقر على السعر لتثبيته يدوياً للعرض أو التحوط.', fxEquiv: 'مبلغ العقد المكافئ', fxLive: 'سعر الصرف الفوري', fxIdle: 'لم يتم تحديث السعر', fxFail: 'تعذر جلب السعر — أدخل القيم يدوياً', fxRate: 'سعر الصرف', fxNeed: 'أدخل أسعار الصرف في لوحة FX أولاً', fxRefresh: 'تحديث', fxSrc: 'المصدر',  fPremClass: 'فئة الدولة', clsA: 'الفئة A', clsB: 'الفئة B', clsC: 'الفئة C', gridTenor: 'مدة السداد', grid3y: '3 سنوات', grid10y: '10 سنوات', premApply: 'مطبق', premInterp: 'استقراء 3–10 سنوات', secWal: 'المدة المتوسطة المرجحة', walNote: 'مرجحة بمبلغ الأصل المؤجل', walLabel: 'المدة المتوسطة المرجحة', walMonths: 'بالأشهر', walNominal: 'مدة السداد (مع السماح)', walFormulaTxt: 'WAL = Σ(الأصل×الأيام)÷المؤجل÷365', walUnit: 'سنة', freq1: 'سنوي (1/سنة)', freq2: 'نصف سنوي (2/سنة)', freq4: 'ربع سنوي (4/سنة)', freq12: 'شهري (12/سنة)', fPass: 'سعر المشتري = التكلفة الإجمالية', passOn: 'مرتبط: سعر المشتري = التكلفة الإجمالية {r}%', passOff: 'غير مرتبط: أدخل سعر المشتري يدوياً', passShort: 'يتبع التكلفة الإجمالية', swapLiveBtn: 'تحديث نقاط المبادلة {t}', swapLiveBusy: 'جارٍ التحديث…', swapLiveOk: 'تم التحديث', swapLiveFail: 'فشل الجلب؛ تم الاحتفاظ بالقيمة', swapSrcLive: 'مباشر', swapSrcDefault: 'القيمة الافتراضية', swapSrcManual: 'يدوي', swapLiveSnap: 'أحدث قيمة منشورة' }
 };
 
 var FXK2 = {
@@ -1163,6 +1216,11 @@ var RU = {
  "print": "Печать",
  "reset": "Сброс",
  "swapLiveBtn": "Обновить пункты свопа {t}",
+ "secWal": "Средневзвешенный срок", "walNote": "Взвешен по непогашенному отложенному долгу", "walLabel": "Средневзвешенный срок", "walMonths": "В месяцах", "walNominal": "Срок (плюс льготный)", "walFormulaTxt": "WAL = Σ(основной долг×дни)÷отложенный долг÷365", "walUnit": "лет",
+ "freq1": "Ежегодно (1/год)", "freq2": "Раз в полгода (2/год)", "freq4": "Ежеквартально (4/год)", "freq12": "Ежемесячно (12/год)",
+ "fPass": "Ставка покупателя = полная стоимость", "passOn": "Связано: ставка покупателя = полная стоимость {r}%", "passOff": "Не связано: введите ставку вручную", "passShort": "по полной стоимости",
+ "fPremClass": "Категория страны", "clsA": "Класс A", "clsB": "Класс B", "clsC": "Класс C",
+ "gridTenor": "Срок", "grid3y": "3 года", "grid10y": "10 лет", "premApply": "применяется", "premInterp": "интерполяция 3–10 лет",
  "swapLiveBusy": "Обновление…",
  "swapLiveOk": "Обновлено",
  "swapLiveFail": "Не удалось получить; значение сохранено",
@@ -1300,7 +1358,7 @@ function addM(iso, m) {
   var last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
   return new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth(), Math.min(day, last)));
 }
-var DEF = { price: 80000000, start: '2026-11-30', downPct: 15, tenorMonths: 24, freq: 2, grace: 6, free: false, ratePct: 5.00, basis: 360, finRatio: 90, finRatePct: 3.50, equityCostPct: 8.00, premRate: 2.00, premBasis: 'PI', premRatioPct: 0, cover: true, swapPts: -6020, swapTenor: 36, cur: 'CNY' };
+var DEF = { price: 5000000, start: '2026-11-30', downPct: 15, tenorMonths: 30, freq: 2, grace: 6, free: false, ratePct: 5.00, basis: 360, finRatio: 90, finRatePct: 3.50, equityCostPct: 8.00, premRate: 2.50, premBasis: 'PI', premClass: 'C', pass: true, cover: true, swapPts: -6020, swapTenor: 36, cur: 'USD' };
 var SWAPSRC = { pips: -6020, date: '2026-11-20', live: false, busy: false, mode: 'default',
   url: 'https://www.chinamoney.com.cn/chinese/bkcurvuiruuh/',
   api: 'https://www.chinamoney.com.cn/ags/ms/cm-u-bk-fx/IuirCurvHis?page=1&pageSize=15&ccyPair=USD.CNY' };
@@ -1319,7 +1377,7 @@ function compute(inp) {
   var bPer = deferred / (nPay - nG);
   var cover = inp.cover !== false;
   var premRate = cover ? Math.max(0, inp.premRate || 0) / 100 : 0;
-  var premRatio = cover ? Math.max(0, Math.min(0.85, inp.premRatioPct || 0) / 100) : 0;
+  var premRatio = 0;
 
   /* pass 1: buyer payment plan on deferred principal */
   var segs = [], prev = toDate(inp.start), bBal = deferred, bi = 0, bp = 0;
@@ -1339,9 +1397,9 @@ function compute(inp) {
   /* ECA premium: exporter bears it; base = deferred + buyer interest (P+I) or P */
   var insured = deferred + bi;
   var premium = premRate * (inp.premBasis === 'P' ? deferred : insured);
-  var premFinanced = premium * premRatio, premPrepay = premium - premFinanced;
+  var premFinanced = 0, premPrepay = premium;
 
-  var loan = f * deferred + premFinanced;
+  var loan = f * deferred;
   var equity = deferred - f * deferred;
   var lPer = loan / (nPay - nG), ePer = equity / (nPay - nG);
   var rows = [], lBal = loan, eBal = equity, li = 0, lp = 0, eqCost = 0, paySum = 0, swSum = 0, liCNY = 0, lpCNY = 0, eqCNY = 0;
@@ -1399,7 +1457,7 @@ function compute(inp) {
   var rawMode = document.documentElement.getAttribute('data-default-langs') || 'zh';
   var rawLangs = rawMode.split('-').filter(function (l) { return ['zh', 'en', 'fr', 'pt', 'es', 'ar', 'ru'].indexOf(l) >= 0; });
   if (!rawLangs.length) rawLangs = ['zh'];
-  var state = { langs: rawLangs, lang: rawLangs[0], cur: 'CNY', model: null, scale: 1 };
+  var state = { langs: rawLangs, lang: rawLangs[0], cur: 'CNY', model: null, scale: 1, premRateManual: false, pass: true };
   function $(s) { return document.querySelector(s); }
   function $$(s) { return Array.prototype.slice.call(document.querySelectorAll(s)); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -1524,7 +1582,7 @@ function compute(inp) {
       equityCostPct: Math.max(0, parseNum($('#inEquityCost').value)),
       premRate: Math.max(0, parseNum($('#inPremRate').value)),
       premBasis: $('#inPremBasis').value,
-      premRatioPct: Math.min(85, Math.max(0, parseNum($('#inPremFin').value))),
+      premClass: $('#inPremClass') ? $('#inPremClass').value : 'B',
       cover: true,
       spot: (FX.rates['CNY'] && FX.rates[state.cur]) ? FX.rates['CNY'] / FX.rates[state.cur] : 1,
       swapPts: parseNum($('#inSwapPts').value),
@@ -1634,6 +1692,14 @@ function renderSwapLive(kind) {
     el.textContent = txt1;
   }
 
+  function renderWal(m) {
+    if (!$('#kWal')) return;
+    var yrs = m.wal, lang = state.lang;
+    $('#kWal').textContent = num(yrs, 2) + ' ' + t1('walUnit');
+    $('#kWalMo').textContent = num(yrs * 12, 1) + ' ' + (lang === 'zh' ? '个月' : lang === 'fr' ? 'mois' : lang === 'ar' ? 'شهر' : lang === 'ru' ? 'мес.' : 'mo');
+    $('#walNominal').textContent = num(m.inp.tenorMonths / 12, 2) + ' ' + t1('walUnit') + (m.inp.grace > 0 ? ' +' + m.inp.grace + (lang === 'zh' ? '月宽限' : lang === 'fr' ? 'mo diff.' : lang === 'ar' ? 'شهر' : lang === 'ru' ? 'мес.' : 'mo') : '');
+  }
+
   function renderKpis(m) {
     var lang = state.lang;
     $('#kBuyerTotal').textContent = money(m.buyerTotal);
@@ -1660,17 +1726,45 @@ function renderSwapLive(kind) {
     renderPrem(m); renderFxLoss(m);
   }
 
+  function premGridRate(cls, months) {
+    var r3 = { A: 1.00, B: 1.50, C: 2.50 }[cls], r10 = { A: 2.15, B: 2.86, C: 5.36 }[cls];
+    if (months <= 36) return { rate: r3, tag: '3y' };
+    if (months >= 120) return { rate: r10, tag: '10y' };
+    return { rate: r3 + (r10 - r3) * (months - 36) / 84, tag: 'interp' };
+  }
+  function applyGridRate() {
+    var cls = $('#inPremClass') ? $('#inPremClass').value : 'B';
+    var months = parseNum($('#inTenor').value) || 0;
+    var g = premGridRate(cls, months);
+    $('#inPremRate').value = g.rate.toFixed(2);
+  }
+
+  function renderPremRate(m) {
+    var cls = (m && m.inp.premClass) || (state.premClass || 'B');
+    var months = m ? m.inp.tenorMonths : (parseNum($('#inTenor').value) || 0);
+    var g = premGridRate(cls, months);
+    var el = $('#hPremRate'); if (el) {
+      var tagTxt = g.tag === 'interp' ? t1('premInterp') : (t1('premApply') + ' ' + (g.tag === '3y' ? '3Y' : '10Y'));
+      el.textContent = tagTxt + ' · ' + cls + ' · ' + g.rate.toFixed(2) + '%';
+    }
+    var grid = $('#premGrid');
+    if (grid) {
+      $$('#premGrid td[data-cls]').forEach(function (td) {
+        var on = td.getAttribute('data-cls') === cls && ((g.tag === '3y' && td.parentNode.rowIndex === 1) || (g.tag === '10y' && td.parentNode.rowIndex === 2));
+        td.classList.toggle('on', on);
+      });
+    }
+  }
+
   function renderPrem(m) {
     var lang = state.lang;
     $('#premAmt').textContent = money(m.premium);
     $('#premBaseAmt').textContent = money(m.insured);
     $('#premOfDeferred').textContent = pct(m.deferred > 0 ? m.premium / m.deferred : 0, 2);
     $('#premBp').textContent = num(m.premBp, 0) + ' bp';
-    $('#premPrepay').textContent = money(m.premPrepay) + ' · ' + num(m.inp.premRate, 2) + '%';
-    $('#premFinanced').textContent = money(m.premFinanced) + ' (' + num(m.inp.premRatioPct, 0) + '%)';
+    $('#premPrepay').textContent = money(m.premPrepay) + ' · ' + num(m.inp.premRate, 2).replace(/(\.\d)$/, '$10') + '%';
     $('#premBasisTxt').textContent = (m.inp.premBasis === 'P' ? t1('optP') : t1('optPI')) + ' · ' + (lang === 'zh' ? '出口商承担' : lang === 'fr' ? 'à la charge de l’exportateur' : 'borne by exporter');
-    $('#hPremFin').textContent = (state.lang === 'zh' ? '上限 85% · 0＝出口商全额自付' : 'max 85%; 0 = exporter pays all');
-    $('#premFinanced').textContent = money(m.premFinanced) + ' (' + num(m.inp.premRatioPct, 0) + '%)';
+    renderPremRate(m);
   }
 
   function renderFxLoss(m) {
@@ -1758,13 +1852,32 @@ function renderSwapLive(kind) {
     else if (inp.finRatio > 90) { $('#alert').hidden = false; $('#alert').textContent = t1('alertFin'); }
     else $('#alert').hidden = true;
     if (inp.finRatio > 90) inp.finRatio = 90;
+    if (state.pass && !inp.free) {
+      var guess = parseNum($('#inRate').value) || inp.ratePct || 5;
+      for (var pi = 0; pi < 24; pi++) {
+        inp.ratePct = guess;
+        var trial = compute(inp);
+        var target = trial.allInPct * 100;
+        if (!isFinite(target)) break;
+        if (Math.abs(target - guess) < 0.005) { guess = target; break; }
+        guess = 0.6 * guess + 0.4 * target;
+      }
+      guess = Math.round(guess * 100) / 100;
+      inp.ratePct = guess;
+      $('#inRate').value = guess.toFixed(2);
+    }
     var m = compute(inp); state.model = m;
     $('#hTenor').textContent = t1('hintTenor').replace('{y}', num(inp.tenorMonths / 12, 1)).replace('{n}', m.periods);
+    if ($('#hPass')) {
+      $('#inRate').disabled = (state.pass && !inp.free);
+      $('#hPass').textContent = (state.pass && !inp.free) ? t1('passOn').replace('{r}', num(inp.ratePct, 2)) : t1('passOff');
+      $('#fHintFree').textContent = inp.free ? t1('freeOn') : t1('freeOff');
+    }
     $('#dDeferred').textContent = money(m.deferred);
     $('#dPer').textContent = money((m.rows.filter(function (x) { return x.principal > 0; })[0] || { principal: 0 }).principal) + (m.nGrace > 0 ? ' · ' + (state.lang === 'zh' ? '宽限后' : state.lang === 'fr' ? 'après différé' : state.lang === 'ru' ? 'после льготного' : 'after grace') : '');
     $('#dPay').textContent = m.periods + (inp.grace > 0 ? ' · ' + (state.lang === 'zh' ? '含宽限' : state.lang === 'ar' ? 'شامل السماح' : state.lang === 'pt' ? 'inclui carência' : state.lang === 'es' ? 'incluye carencia' : state.lang === 'ru' ? 'вкл. льготный' : 'incl. grace') : '');
     $('#dFin').textContent = moneyC(m.loanCNY);
-    renderKpis(m); renderTables(m); renderChart(m); renderSens(); renderSwapHint(m); renderFx();
+    renderKpis(m); renderWal(m); renderTables(m); renderChart(m); renderSens(); renderSwapHint(m); renderFx();
   }
 
   function renderLive() {
@@ -1893,8 +2006,8 @@ function renderSwapLive(kind) {
     a.push([{ v: L('fPremBasis'), s: ST.text }, { v: (m.inp.premBasis === 'P' ? L('optP') : L('optPI')), s: ST.text }]);
     a.push([{ v: L('premBaseAmt'), s: ST.text }, { v: m.insured, s: ST.money }]);
     a.push([{ v: L('premAmt'), s: ST.text }, { v: m.premium, s: ST.money }]);
+    a.push([{ v: L('fPremClass'), s: ST.text }, { v: m.inp.premClass || 'B', s: ST.text }]);
     a.push([{ v: L('premPrepayRow'), s: ST.text }, { v: m.premPrepay, s: ST.money }]);
-    a.push([{ v: L('premFinRow'), s: ST.text }, { v: m.premFinanced, s: ST.money }]);
     a.push([{ v: L('premBp'), s: ST.text }, { v: m.premBp, s: ST.money }]);
     a.push([{ v: L('kNetCost') + ' (' + L('fEquityCost') + ')', s: ST.text }, { v: m.equity, s: ST.money }]);
 
@@ -1980,7 +2093,7 @@ function renderSwapLive(kind) {
     $('#inGrace').value = DEF.grace; $('#inRate').value = DEF.ratePct.toFixed(2); $('#inBasis').value = DEF.basis;
     $('#inFinRatio').value = DEF.finRatio; $('#inFinRate').value = DEF.finRatePct.toFixed(2);
     $('#inFree').classList.toggle('on', DEF.free); $('#inRate').disabled = DEF.free;
-    $('#inEquityCost').value = DEF.equityCostPct.toFixed(2); $('#inPremRate').value = DEF.premRate.toFixed(2); $('#inPremFin').value = DEF.premRatioPct; $('#inPremBasis').value = DEF.premBasis; $('#inSwapPts').value = DEF.swapPts; $('#inSwapTenor').value = DEF.swapTenor;
+    $('#inEquityCost').value = DEF.equityCostPct.toFixed(2); $('#inPremRate').value = DEF.premRate.toFixed(2); $('#inPremClass').value = DEF.premClass; $('#inPremBasis').value = DEF.premBasis; $('#inSwapPts').value = DEF.swapPts; $('#inSwapTenor').value = DEF.swapTenor;
     state.cur = DEF.cur; $('#curSel').value = DEF.cur; $('#sfxCur').textContent = DEF.cur;
     renderEquityMix();
     applyI18n(); render(); renderFx();
@@ -1998,16 +2111,18 @@ function renderSwapLive(kind) {
     $('#inStart').value = DEF.start;
     $('#inDown').value = DEF.downPct; $('#inTenor').value = DEF.tenorMonths; $('#inFreq').value = DEF.freq;
     $('#inGrace').value = DEF.grace; $('#inRate').value = DEF.ratePct.toFixed(2); $('#inBasis').value = DEF.basis;
-    $('#inFinRatio').value = DEF.finRatio; $('#inFinRate').value = DEF.finRatePct.toFixed(2); $('#inEquityCost').value = DEF.equityCostPct.toFixed(2); $('#inPremRate').value = DEF.premRate.toFixed(2); $('#inPremFin').value = DEF.premRatioPct; $('#inPremBasis').value = DEF.premBasis; $('#inFree').classList.remove('on');
+    $('#inFinRatio').value = DEF.finRatio; $('#inFinRate').value = DEF.finRatePct.toFixed(2); $('#inEquityCost').value = DEF.equityCostPct.toFixed(2); $('#inPremRate').value = DEF.premRate.toFixed(2); $('#inPremClass').value = DEF.premClass; $('#inPremBasis').value = DEF.premBasis; $('#inFree').classList.remove('on');
+    state.pass = DEF.pass; $('#inPass').classList.toggle('on', state.pass); $('#inPass').setAttribute('aria-checked', state.pass ? 'true' : 'false');
     $('#curSel').value = DEF.cur; state.cur = DEF.cur;
-    $('#inEquityCost').value = DEF.equityCostPct.toFixed(2); $('#inPremRate').value = DEF.premRate.toFixed(2); $('#inPremFin').value = DEF.premRatioPct; $('#inPremBasis').value = DEF.premBasis;
+    $('#inEquityCost').value = DEF.equityCostPct.toFixed(2); $('#inPremRate').value = DEF.premRate.toFixed(2); $('#inPremClass').value = DEF.premClass; $('#inPremBasis').value = DEF.premBasis;
     $('#inSwapPts').value = DEF.swapPts;
     $('#inSwapTenor').value = DEF.swapTenor;
     $('#inSwapPts').disabled = ($('#curSel').value === 'CNY');
     $('#inSwapTenor').disabled = ($('#curSel').value === 'CNY');
     renderEquityMix();
-    var fo = []; for (var fi = 1; fi <= 12; fi++) fo.push('<option value="' + fi + '">' + fi + '</option>');
-    $('#inFreq').innerHTML = fo.join('');
+    $('#inFreq').innerHTML = [1, 2, 4, 12].map(function (n) {
+      return '<option value="' + n + '" data-i18n="freq' + n + '"></option>';
+    }).join('');
     $('#inFreq').value = DEF.freq;
     $('#curSel').title = t1('curHint');
 
@@ -2022,6 +2137,13 @@ function renderSwapLive(kind) {
     });
     document.addEventListener('click', function (e) { if (!e.target.closest('.langpick')) $('#langMenu').hidden = true; });
 
+    $('#inPass').addEventListener('click', function () {
+      state.pass = !state.pass;
+      this.classList.toggle('on', state.pass);
+      this.setAttribute('aria-checked', state.pass ? 'true' : 'false');
+      if (!state.pass) $('#inRate').disabled = false;
+      render();
+    });
     $('#inFree').addEventListener('click', function () {
       this.classList.toggle('on');
       var free = this.classList.contains('on');
@@ -2032,8 +2154,22 @@ function renderSwapLive(kind) {
     });
 
     $('#inEquityCost').addEventListener('input', schedule);
+    $('#inPremRate').addEventListener('input', function () { state.premRateManual = true; });
     $('#inFinRatio').addEventListener('input', function () { renderEquityMix(); });
     $('#inSwapPts').addEventListener('input', function () { if (SWAPSRC.live && Math.abs(parseNum(this.value) - SWAPSRC.pips) > 1e-6) { SWAPSRC.live = false; renderSwapLive('manual'); } schedule(); });
+    $('#inTenor').addEventListener('input', function () { if (!state.premRateManual) applyGridRate(); });
+    $('#inPremClass').addEventListener('change', function () { state.premRateManual = false; applyGridRate(); render(); });
+    $('#premGrid').addEventListener('click', function (e) {
+      var td = e.target.closest('td[data-cls]'); if (!td) return;
+      var cls = td.getAttribute('data-cls');
+      var rowYear = td.parentNode.rowIndex === 1 ? 3 : 10;
+      var graceM = Math.max(0, Math.round(parseNum($('#inGrace').value)));
+      $('#inTenor').value = Math.max(1, rowYear * 12 - graceM);
+      $('#inPremClass').value = cls;
+      state.premRateManual = true;
+      $('#inPremRate').value = parseFloat(td.textContent);
+      render();
+    });
     $('#inSwapTenor').addEventListener('input', schedule);
     $('#inSwapTenor').addEventListener('input', function () {
       renderSwapBtn();
@@ -2041,7 +2177,7 @@ function renderSwapLive(kind) {
       if (SWAPSRC.mode !== 'manual') tenorTimer = setTimeout(fetchSwap, 500);
     });
     renderSwapBtn();
-    ['#inPrice', '#inDown', '#inTenor', '#inGrace', '#inRate', '#inFinRatio', '#inFinRate', '#inPremRate', '#inPremFin', '#inSwapPts', '#inSwapTenor'].forEach(function (id) {
+    ['#inPrice', '#inDown', '#inTenor', '#inGrace', '#inRate', '#inFinRatio', '#inFinRate', '#inPremRate', '#inSwapPts', '#inSwapTenor'].forEach(function (id) {
       $(id).addEventListener('input', schedule);
       $(id).addEventListener('blur', function () {
         var dec = (id === '#inPrice') ? 0 : (id === '#inTenor' || id === '#inGrace') ? 0 : 2;
