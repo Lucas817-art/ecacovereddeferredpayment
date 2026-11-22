@@ -1,0 +1,2108 @@
+<!DOCTYPE html>
+<html lang="zh" data-default-langs="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-zh="ECA支持卖方信贷计算器" data-en="ECA-Supported Seller Credit Calculator">ECA支持卖方信贷计算器</title>
+<style>
+:root{
+  --navy:#0d2440; --navy2:#173d68; --ink:#1f2a37; --muted:#6b7b8f; --line:#e4ebf3;
+  --bg:#f3f6fa; --card:#fff; --gold:#c8a24a; --gold2:#e6cf94; --teal:#1f6f5c;
+  --shadow:0 2px 12px rgba(16,42,67,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:"Inter","Segoe UI","Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,Arial,sans-serif;
+  background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased;
+  font-size:13px; line-height:1.45;
+}
+.esc{font-variant-numeric:tabular-nums}
+.xl2{display:block;font-size:10px;color:#93a1b3;font-weight:500;line-height:1.3}
+.unit{font-size:11px;color:#7d8b9c;font-weight:500;margin-left:1px;letter-spacing:0}
+
+/* ---------- app bar ---------- */
+.appbar{
+  position:sticky; top:0; z-index:30;
+  background:linear-gradient(115deg,#0b1f38 0%,#16395f 60%,#1d4a78 100%);
+  color:#fff; padding:11px 24px; display:flex; align-items:center; justify-content:space-between;
+  gap:16px; flex-wrap:wrap; box-shadow:0 8px 24px rgba(9,26,46,.22);
+}
+.brand{display:flex; align-items:center; gap:12px; min-width:0}
+.logo{
+  width:40px;height:40px;border-radius:11px;flex:0 0 auto;
+  background:linear-gradient(140deg,#e8d29b,#c8a24a);
+  display:grid;place-items:center;color:#0d2440;font-weight:800;font-size:12px;letter-spacing:.8px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+}
+.brand h1{margin:0;font-size:16.5px;font-weight:650;letter-spacing:.2px;white-space:nowrap}
+.brand .sub{margin:2px 0 0;font-size:11px;color:rgba(255,255,255,.66);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60vw}
+.tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.seg{display:flex;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:3px;gap:2px}
+.seg button{
+  border:0;background:transparent;color:rgba(255,255,255,.72);font:inherit;font-size:11.5px;
+  padding:5px 9px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:.15s;
+}
+.seg button:hover{color:#fff}
+.seg button.on{background:#fff;color:#12314f;font-weight:600}
+.mini-select{
+  background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);color:#fff;
+  border-radius:8px;height:30px;padding:0 8px;font:inherit;font-size:11.5px;cursor:pointer;
+}
+.mini-select option{color:#1f2a37}
+.btn{
+  border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff;
+  border-radius:8px;height:32px;padding:0 13px;font:inherit;font-size:12px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap;
+}
+.btn:hover{background:rgba(255,255,255,.16)}
+.btn.primary{background:linear-gradient(135deg,#e8d29b,#c8a24a);color:#0d2440;border-color:transparent;font-weight:650}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.ghost{background:transparent}
+
+
+/* equity/debt, IRR, FX */
+.edfield{display:block}
+.edfield .fl{display:block}
+.edfield .fl .xl2{display:block;margin-top:1px}
+.edbox{display:flex;align-items:center;gap:6px;margin-top:7px}
+.edbox .inp{flex:0 0 auto}
+.edbox .inp input{width:66px;text-align:right;padding-right:22px;font-size:12px}
+.edtag{font-size:10px;font-weight:700;color:#8b99aa;letter-spacing:.5px}
+.edcolon{font-weight:600;color:#8b99aa;font-size:12px}
+.edhint{font-size:10px;color:#93a1b3;margin-left:2px;white-space:nowrap}
+
+.irrcard .card-head .meta{font-size:10px;color:#93a1b3;font-weight:400;max-width:56%;line-height:1.4}
+.irrgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px}
+.irrcell{background:#f8fafd;border:1px solid #e9eff6;border-radius:10px;padding:8px 11px}
+.irrcell.hero{background:linear-gradient(135deg,#f3f7fc,#eaf1f9);border-color:#dbe6f2}
+.irrcell .kl{font-size:10px;color:#7e8da0;line-height:1.35}
+.irrgrid .kv{font-size:20px;font-weight:650;color:#10263d;margin-top:2px;font-variant-numeric:tabular-nums}
+.irrcell .kv.small{font-size:15px}
+.irrcell .kv.gold{color:#8a6a1f}
+
+.fxpick{position:relative}
+.fxbtn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 9px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.10);color:#fff;font:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap}
+.fxbtn:hover{background:rgba(255,255,255,.18)}
+.fxdot{width:6px;height:6px;border-radius:50%;background:#7fd6a8}
+.fxi{width:74px;text-align:right;border:0;border-bottom:1px dashed #cbd7e4;background:transparent;font:inherit;font-weight:600;font-size:11px;color:#10263d;padding:0 0 1px 0}
+.fxi:focus{outline:none;border-bottom-color:#c8a24a}
+.fxtag{font-style:normal;font-size:8.5px;color:#8a6a1f;background:#f6eeda;border-radius:3px;padding:0 3px;margin-left:3px;vertical-align:1px}
+.fxrst{margin-left:6px;background:none;border:1px solid #d9e2ec;border-radius:6px;font-size:10px;color:#41556b;padding:3px 6px;cursor:pointer}
+.fxmenu{position:absolute;right:0;top:38px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:10px;
+  box-shadow:0 14px 34px rgba(10,26,45,.20);padding:10px;min-width:262px;z-index:60}
+.fxmenu[hidden]{display:none}
+.fxmenu h4{margin:0 0 6px;font-size:11px;color:#6b7b8f;font-weight:600;letter-spacing:.02em}
+.fxrow{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:4px 0;border-bottom:1px dashed #eef2f7}
+.fxrow:last-of-type{border-bottom:0}
+.fxrow b{font-variant-numeric:tabular-nums}
+.fxfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid #eef3f8;font-size:10px;color:#8b99aa}
+.fxfoot button{border:1px solid #d9e2ec;background:#f7fafd;border-radius:7px;height:24px;padding:0 9px;font:inherit;font-size:10.5px;color:#3b5468;cursor:pointer}
+
+/* ---------- layout ---------- */
+.shell{max-width:1560px;margin:0 auto;padding:18px 24px 40px;display:grid;grid-template-columns:346px minmax(0,1fr);gap:18px;align-items:start}
+.panel{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);
+  padding:14px 16px 12px;position:sticky;top:82px;max-height:calc(100vh - 100px);overflow:auto;
+}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.panel h2{font-size:13px;margin:0;font-weight:650;color:#12283f;display:flex;align-items:baseline;gap:6px}
+.panel h2 .xl2{font-size:10px;color:#93a1b3;font-weight:500}
+.panel .hintline{font-size:10.5px;color:#93a1b3;margin:2px 0 8px;line-height:1.4}
+.group{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#8b99aa;font-weight:600;margin:12px 0 2px;padding-top:8px;border-top:1px solid #eef3f8}
+.group:first-of-type{border-top:0;margin-top:2px}
+.field{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed #f0f4f9}
+.field:last-child{border-bottom:0}
+.field .fl{flex:1;min-width:0;font-size:11.5px;color:#3f4d60;line-height:1.25}
+.field .fl .xl2{display:block;color:#97a4b5;font-size:10px;margin-top:1px}
+.inp{position:relative;flex:0 0 auto}
+.inp input,.inp select{
+  width:124px;height:31px;border:1px solid #d9e2ec;border-radius:7px;background:#fbfdff;
+  padding:0 34px 0 9px;font:inherit;font-size:12.5px;color:#12212f;text-align:right;
+  font-variant-numeric:tabular-nums;outline:none;transition:.15s;
+}
+.inp select{padding-right:22px;text-align:left}
+.inp input:focus,.inp select:focus{border-color:#7ea6cc;box-shadow:0 0 0 3px rgba(30,74,118,.10);background:#fff}
+.inp .sfx{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:9.5px;color:#9aa8b8;pointer-events:none;letter-spacing:.02em}
+.inp #inPrice{width:142px}
+.inp #inPremBasis{width:176px}
+.inp #inRepType{width:176px}
+[hidden]{display:none!important}
+.inp.wide-sfx input{padding-right:52px}
+.inp.wide-sfx .sfx{right:8px}
+.field.period{flex-wrap:wrap}
+.fhint{font-size:9.5px;color:#9aa8b8;text-align:right;flex:0 0 100%;margin-top:-3px;line-height:1.2;min-height:11px}
+.fhint{font-size:9.5px;color:#9aa8b8;text-align:right;margin-top:-2px;line-height:1.2}
+.inp input[type=date]{text-align:left;padding-right:8px;font-size:11.5px}
+.switch{width:42px;height:22px;border-radius:12px;background:#dbe4ee;position:relative;cursor:pointer;transition:.18s;flex:0 0 auto}
+.switch::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.18s;box-shadow:0 1px 3px rgba(0,0,0,.22)}
+.switch.on{background:linear-gradient(135deg,#1d4a78,#173d68)}
+.switch.on::after{left:23px}
+.derived{margin-top:10px;background:#f7fafd;border:1px solid #e7eef6;border-radius:10px;padding:8px 10px}
+.derived .row{display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:3px 0;color:#5a6b80}
+.derived .row b{font-weight:650;color:#16283d;font-variant-numeric:tabular-nums}
+
+/* ---------- alert ---------- */
+.alert{
+  margin:0 0 12px;border:1px solid #f3d7a2;background:#fff9ec;color:#8a5a12;border-radius:10px;
+  padding:9px 12px;font-size:12px;display:flex;gap:8px;align-items:flex-start;
+}
+.alert[hidden]{display:none}
+
+/* ---------- cards ---------- */
+.content{min-width:0;display:flex;flex-direction:column;gap:16px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px 10px;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#dbe6f1}
+.kpi.gold::before{background:linear-gradient(#e6cf94,#c8a24a)}
+.kpi.navy::before{background:linear-gradient(#2c5f96,#173d68)}
+.kpi .kl{font-size:10px;color:#7e8da0;line-height:1.35;min-height:26px}
+.kpi .kv{font-size:19px;font-weight:650;letter-spacing:-.3px;color:#10263d;margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi .kv .cur{font-size:10.5px;color:#8fa0b3;font-weight:500;margin-right:2px;letter-spacing:0}
+.kpi .ks{font-size:10px;color:#8b99aa;margin-top:3px;line-height:1.3}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px 16px 12px;min-width:0}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.card-head h3{margin:0;font-size:13px;font-weight:650;color:#12283f;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.card-head h3 .xl2{font-size:10.5px;color:#93a1b3;font-weight:500}
+.card-head .meta{font-size:10.5px;color:#8b99aa;display:flex;align-items:center;gap:8px}
+.badge{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:2px 8px;font-size:10px;border:1px solid #cfe6da;background:#f2fbf6;color:#1f6f5c;white-space:nowrap}
+.badge[hidden]{display:none}
+.badge.warn{border-color:#f0dcb0;background:#fff9ec;color:#8a5a12}
+.badge.plain{border-color:#dfe8f2;background:#f5f9fd;color:#526278}
+
+/* chart */
+.chartbox{padding-top:2px}
+.chartbox svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:10.5px;color:#5c6d81;margin:2px 0 6px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:1px}
+.legend .ln{width:14px;height:2px;border-radius:2px;background:#9fb0c3;vertical-align:4px}
+
+/* table */
+.tbl-tools{display:flex;align-items:center;gap:10px;font-size:10.5px;color:#8b99aa;flex-wrap:wrap}
+.tbl-tools select{border:1px solid #dfe7f0;border-radius:6px;height:26px;padding:0 6px;font:inherit;font-size:10.5px;background:#fff;color:#38506b}
+.tblwrap{overflow-x:auto;border:1px solid #e6ecf3;border-radius:10px;margin-top:4px}
+table.grid{border-collapse:separate;border-spacing:0;width:100%;font-size:11.8px;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.grid thead th{
+  position:sticky;top:0;z-index:3;background:#f7f9fc;color:#43546b;font-weight:600;font-size:10px;
+  padding:7px 10px;text-align:right;border-bottom:1px solid #dbe5f0;line-height:1.35;vertical-align:bottom;
+}
+table.grid thead th .xl2{display:block;color:#98a6b7;font-weight:500;font-size:9px}
+table.grid thead th:first-child,table.grid thead th:nth-child(2){text-align:left}
+table.grid thead th.l{text-align:left}
+table.grid tbody td{padding:5.5px 10px;text-align:right;border-bottom:1px solid #f2f6fa;color:#1b2a3a}
+table.grid tbody td.l{text-align:left}
+table.grid tbody tr:nth-child(even) td{background:#fbfcfe}
+table.grid tbody tr:hover td{background:#f1f7ff}
+table.grid tbody tr.grace td:first-child{box-shadow:inset 3px 0 0 #c8a24a}
+table.grid tbody tr.final td{background:#fffaef}
+table.grid tr.total td{font-weight:700;background:#f6f9fd;border-top:2px solid #dde7f2;color:#0f2740}
+.grace-tag{display:inline-block;font-size:9px;color:#8a6414;background:#fdf3d9;border-radius:4px;padding:0 4px;margin-left:4px;vertical-align:1px}
+
+/* sensitivity */
+.senswrap{overflow-x:auto}
+.sens{width:100%;min-width:330px;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums}
+.sens th{font-size:10px;color:#7e8da0;font-weight:600;text-align:right;padding:5px 5px;border-bottom:1px solid #e7eef6;line-height:1.3}
+.sens th:first-child{text-align:left}
+.sens td{padding:5px 5px;text-align:right;border-bottom:1px solid #f2f6fa;color:#22364c}
+.sens td:first-child{text-align:left;font-weight:600;color:#3c5168}
+.sens tr.base td{background:#fffaf0}
+.sens tr.base td:first-child{color:#8a6414}
+.sens .pos{color:#a5522c}
+.sens .neg{color:#1f6f5c}
+.sens .note{font-size:10px;color:#93a1b3;margin-top:8px;line-height:1.45}
+
+.row2{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:start}
+
+/* notes */
+details.notes{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:0}
+details.notes summary{cursor:pointer;padding:13px 16px;font-size:12.5px;font-weight:650;color:#12283f;list-style:none;display:flex;align-items:center;gap:8px}
+details.notes summary::-webkit-details-marker{display:none}
+details.notes summary::before{content:"›";color:#c8a24a;font-weight:700;transition:.2s;display:inline-block}
+details.notes[open] summary::before{transform:rotate(90deg)}
+details.notes .body{padding:0 16px 14px;border-top:1px solid #f0f4f9}
+details.notes ol{margin:8px 0 0;padding-left:18px;color:#4a5b70;font-size:11.5px;line-height:1.55}
+details.notes li{margin-bottom:6px}
+details.notes li .xl2{display:block;color:#8f9dae;font-size:10.5px;margin-top:2px}
+
+footer{max-width:1560px;margin:0 auto;padding:0 24px 26px;font-size:10px;color:#9aa8b8;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+
+
+/* ---------- language picker / live rate ---------- */
+.langpick{position:relative}
+.langbtn{
+  display:flex;align-items:center;gap:7px;height:30px;padding:0 9px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.10);color:#fff;
+  font:inherit;font-size:11.5px;cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.langbtn:hover{background:rgba(255,255,255,.18)}
+.langbtn .caret{font-size:9px;opacity:.7}
+.flags{display:inline-flex;align-items:center}
+.flag{width:17px;height:11px;border-radius:2px;display:block;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
+.flags .flag + .flag{margin-left:2px}
+.langmenu{
+  position:absolute;right:0;top:38px;background:#fff;color:var(--ink);border:1px solid var(--line);
+  border-radius:10px;box-shadow:0 14px 34px rgba(10,26,45,.20);padding:5px;min-width:206px;z-index:60;
+}
+.langmenu[hidden]{display:none}
+.langmenu button{
+  display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;
+  padding:7px 9px;border-radius:7px;font:inherit;font-size:12px;color:#22364b;cursor:pointer;text-align:left;
+}
+.langmenu button:hover{background:#f2f6fa}
+.langmenu button.on{background:#e9f1f9;font-weight:600}
+.langmenu .lname{flex:1}
+.livebar{display:flex;align-items:center;gap:8px;padding:6px 0 1px;flex-wrap:wrap}
+.chipbtn{
+  border:1px solid #d9e2ec;background:#f7fafd;border-radius:7px;height:24px;padding:0 9px;
+  font:inherit;font-size:10.5px;color:#3b5468;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:.15s;
+}
+.chipbtn:hover{border-color:#b9cde1;background:#eef4fa}
+.chipbtn[disabled]{opacity:.6;cursor:default}
+.chipbtn .spin{display:inline-block;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+.srclink{color:#2f6fa8;text-decoration:none;font-weight:650;padding:0 1px}
+.liveinfo{font-size:10px;color:#7d8b9c;display:block;flex:1 1 100%;min-width:0;line-height:1.4}
+.liveinfo.ok{color:#0a8f5b}
+.liveinfo.err{color:#c0392b}
+.dot{width:6px;height:6px;border-radius:50%;background:#c3cdd8;display:inline-block;vertical-align:middle;margin-right:4px}
+.dot.live{background:#1f9d63;box-shadow:0 0 0 2px rgba(31,157,99,.14)}
+.dot.ref{background:#2f6fa8}
+.dot.manual{background:#c8a24a}
+.dot.fail{background:#c05b5b}
+
+@media (max-width:1360px){
+  table.grid{font-size:11px}
+  table.grid tbody td{padding:5px 5px}
+  table.grid thead th{padding:6px 5px}
+  .sens{font-size:10.5px}
+  .sens td,.sens th{padding:4px 4px}
+}
+@media (max-width:1240px){.irrgrid{grid-template-columns:1.4fr 1fr 1fr}}
+@media (max-width:760px){.irrgrid{grid-template-columns:1fr 1fr}.irrcell.hero{grid-column:1/-1}}
+@media (max-width:1240px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.row2{grid-template-columns:1fr}}
+@media (max-width:1040px){
+  .shell{grid-template-columns:1fr;padding:14px}
+  .panel{position:static;max-height:none}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .brand .sub{max-width:80vw}
+}
+@media (max-width:560px){
+  .appbar{padding:10px 14px;gap:10px}
+  .inp input,.inp select{width:132px;font-size:12px;padding-right:28px}
+  .toolbar,.tools{gap:8px}
+  .brand h1{font-size:15px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .kpi .kv{font-size:16px}
+  .kpi .ks{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.35}
+  .btn{padding:0 9px;font-size:11px}
+  table.grid{font-size:11px}
+  table.grid tbody td{padding:5px 8px}
+  table.grid thead th{padding:6px 8px}
+  .card{padding:12px}
+  .sens{font-size:10px;min-width:340px}
+  .sens th{font-size:9px;padding:4px 4px}
+  .sens td{padding:4px 4px}
+}
+@media print{
+  @page{size:A4 landscape;margin:9mm}
+  body{background:#fff;font-size:11px}
+  .appbar{position:static;background:#fff;color:#10263d;box-shadow:none;border-bottom:1px solid #ccc;padding:6px 0}
+  .brand .sub,.tools,.livebar{display:none}
+  .logo{display:none}
+  .shell{display:block;max-width:none;padding:0}
+  .panel{position:static;max-height:none;box-shadow:none;border:0;padding:0;margin-bottom:12px;
+    display:grid;grid-template-columns:1fr 1fr;column-gap:26px}
+  .panel-head,.panel .hintline,.panel .derived{grid-column:1/-1}
+  .card,.kpi,.panel{box-shadow:none;break-inside:avoid}
+  .kpi{overflow:visible}
+  .kpis{grid-auto-rows:auto}
+  .card,.kpi{border-color:#d9e2ec}
+  .kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .irrgrid{grid-template-columns:1.4fr 1fr 1fr;gap:8px}
+  .irrcell{padding:6px 9px}
+  .irrgrid .kv{font-size:17px}
+  .row2{grid-template-columns:1.35fr minmax(0,1fr);gap:10px}
+  .tblwrap{max-height:none;overflow:visible;border:0}
+  table.grid{font-size:9.3px}
+  table.grid tbody td{padding:3px 5px}
+  table.grid thead th{padding:4px 5px}
+  table.grid thead th{position:static}
+  table.grid tbody tr{break-inside:avoid}
+  details.notes{display:none}
+  .content{gap:10px}
+}
+
+.fxpick{position:relative}
+.fxbtn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 9px;border-radius:8px;border:0;background:rgba(255,255,255,.10);color:#eaf1f8;font:inherit;font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.02em}
+.fxbtn:hover{background:rgba(255,255,255,.18)}
+.fxdot{width:6px;height:6px;border-radius:50%;background:#7fd6a8}
+.fxi{width:78px;text-align:right;border:0;border-bottom:1px dashed #cbd7e4;background:transparent;font:inherit;font-weight:600;font-size:11px;color:#10263d;padding:0 0 1px 0}
+.fxi:focus{outline:none;border-bottom-color:#c8a24a}
+.fxtag{font-style:normal;font-size:8.5px;color:#8a6a1f;background:#f6eeda;border-radius:3px;padding:0 3px;margin-left:3px;vertical-align:1px}
+.fxrst{margin-left:6px;background:none;border:1px solid #d9e2ec;border-radius:6px;font-size:10px;color:#41556b;padding:3px 6px;cursor:pointer}
+.fxmenu{position:absolute;left:auto;right:0;top:38px;background:#fff;color:#10263d;border:1px solid #dbe4ee;border-radius:10px;padding:10px 12px;width:250px;box-shadow:0 12px 32px rgba(16,38,61,.18);z-index:60}
+.fxmenu[hidden]{display:none}
+.fxmenu h4{margin:0 0 6px;font-size:11px;color:#6b7b8f;font-weight:600;letter-spacing:.02em}
+.fxrow{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:4px 0;border-bottom:1px dashed #eef2f7}
+.fxrow:last-of-type{border-bottom:0}
+.fxrow b{font-variant-numeric:tabular-nums}
+.fxfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid #eef3f8;font-size:10px;color:#8b99aa}
+.fxfoot button{border:1px solid #d9e2ec;background:#f7fafd;border-radius:7px;height:24px;padding:0 9px;font:inherit;font-size:10.5px;color:#3b5468;cursor:pointer}
+.fxmsg{margin-top:6px;font-size:10px;color:#b0642a;line-height:1.35}
+.fxeq{font-size:10px;color:#8a97a6;padding:3px 2px 2px 0;text-align:right;letter-spacing:.01em}
+.fxeq[hidden]{display:none}
+.fxbtn.man .fxdot{background:#e8b45a}
+html[dir="rtl"] .fxmenu{left:0;right:auto}
+</style>
+<style>
+.fxlink{color:#2c5f96;text-decoration:none;border-bottom:1px dashed #9db8d4;font-size:11px}
+.fxlink:hover{color:#1c4a7c;border-bottom-style:solid}
+.fxnote{font-size:10px;color:#8b99aa;line-height:1.5}
+</style>
+<style>
+.irrgrid.four{grid-template-columns:1.2fr 1fr 1fr 1fr}
+.irrgrid.three{grid-template-columns:1.3fr 1fr 1fr}
+.fxrows{margin-top:8px}
+.fxrows .fr{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#5d6e82;padding:3px 0;border-top:1px dashed #eef3f8}
+.fxrows .fr b{color:#10263d;font-variant-numeric:tabular-nums}
+.premcard .note{font-size:10px}
+</style>
+</head><header class="appbar">
+  <div class="brand">
+    <div class="logo">SC</div>
+    <div>
+      <h1 data-i18n="appTitle"></h1>
+      <p class="sub" data-i18n="appSub"></p>
+    </div>
+  </div>
+  <div class="tools">
+    <div class="langpick">
+      <button type="button" id="langBtn" class="langbtn" aria-haspopup="true">
+        <span class="flags" id="langFlags"></span>
+        <span id="langShort">中文</span>
+        <span class="caret">▾</span>
+      </button>
+      <div class="langmenu" id="langMenu" hidden></div>
+    </div>
+    <div class="fxpick">
+      <button type="button" id="fxBtn" class="fxbtn" aria-haspopup="true" aria-expanded="false">
+        <span class="fxdot"></span><span id="fxBtnTxt">FX</span>
+      </button>
+      <div class="fxmenu" id="fxMenu" hidden></div>
+    </div>
+    <select id="curSel" class="mini-select" title="currency">
+      <option value="CNY">CNY</option>
+      <option value="USD">USD</option>
+      <option value="EUR">EUR</option>
+      <option value="GBP">GBP</option>
+    </select>
+    <button type="button" id="btnExport" class="btn primary"><span>⤓</span><span data-i18n="export"></span></button>
+    <button type="button" id="btnPrint" class="btn ghost"><span data-i18n="print"></span></button>
+    <button type="button" id="btnReset" class="btn ghost"><span data-i18n="reset"></span></button>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="panel">
+    <div class="panel-head">
+      <h2 data-i18n="secAssumptions"></h2>
+    </div>
+    <p class="hintline" data-i18n="readme"></p>
+
+    <div class="group" data-i18n="secBuyerTerms"></div>
+    <div class="field">
+      <label class="fl" for="inPrice" data-i18n="fPrice"></label>
+      <div class="inp"><input id="inPrice" type="text" inputmode="decimal"><span class="sfx" id="sfxCur">CNY</span></div>
+    </div>
+    <div class="fxeq" id="fxEqHint" dir="ltr" hidden></div>
+    <div class="field">
+      <label class="fl" for="inStart" data-i18n="fStart"></label>
+      <div class="inp"><input id="inStart" type="date"></div>
+    </div>
+    <div class="field">
+      <label class="fl" for="inDown" data-i18n="fDown"></label>
+      <div class="inp"><input id="inDown" type="text" inputmode="decimal"><span class="sfx">%</span></div>
+    </div>
+    <div class="field period">
+      <label class="fl" for="inTenor" data-i18n="fTenor"></label>
+      <div class="inp wide-sfx"><input id="inTenor" type="text" inputmode="decimal"><span class="sfx" data-i18n="unitMons"></span></div>
+      <div class="fhint" id="hTenor"></div>
+    </div>
+    <div class="field">
+      <label class="fl" for="inFreq" data-i18n="fFreq"></label>
+      <div class="inp"><select id="inFreq"></select></div>
+    </div>
+    <div class="field">
+      <label class="fl" for="inGrace" data-i18n="fGrace"></label>
+      <div class="inp wide-sfx"><input id="inGrace" type="text" inputmode="decimal"><span class="sfx" data-i18n="unitMons"></span></div>
+    </div>
+    <div class="field">
+      <div class="fl"><span data-i18n="fFree"></span><span class="xl2" id="fHintFree"></span></div>
+      <div class="switch" id="inFree" role="switch" aria-checked="false"></div>
+    </div>
+    <div class="field">
+      <label class="fl" for="inRate" data-i18n="fRate"></label>
+      <div class="inp"><input id="inRate" type="text" inputmode="decimal"><span class="sfx">%</span></div>
+    </div>
+    <div class="field">
+      <label class="fl" for="inBasis" data-i18n="fBasis"></label>
+      <div class="inp"><select id="inBasis"><option value="360">360</option><option value="365">365</option></select></div>
+    </div>
+
+    <div class="group" data-i18n="secSellerFin"></div>
+    <div class="field">
+      <label class="fl" for="inFinRatio" data-i18n="fFinRatio"></label>
+      <div class="inp"><input id="inFinRatio" type="text" inputmode="decimal"><span class="sfx">%</span></div>
+    </div>
+    <div class="field">
+      <label class="fl" for="inFinRate" data-i18n="fFinRate"></label>
+      <div class="inp"><input id="inFinRate" type="text" inputmode="decimal"><span class="sfx">%</span></div>
+    </div>
+
+    <div class="group" data-i18n="secPrem"></div>
+    <div class="field">
+      <label class="fl" for="inPremRate" data-i18n="fPremRate"></label>
+      <div class="inp"><input id="inPremRate" type="text" inputmode="decimal"><span class="sfx">%</span></div>
+    </div>
+    <div class="hintline" data-i18n="premRateHint"></div>
+    <div class="field">
+      <label class="fl" for="inPremBasis" data-i18n="fPremBasis"></label>
+      <div class="inp"><select id="inPremBasis"><option value="PI" data-i18n="optPI"></option><option value="P" data-i18n="optP"></option></select></div>
+    </div>
+    <div class="field">
+      <label class="fl" for="inPremFin" data-i18n="fPremFin"></label>
+      <div class="inp"><input id="inPremFin" type="text" inputmode="decimal"><span class="sfx">%</span></div>
+    </div>
+    <div class="hintline" id="hPremFin"></div>
+    <div class="livebar">
+      <button type="button" id="btnLive" class="chipbtn"><span>⟳</span><span data-i18n="liveBtn"></span></button>
+      <span class="liveinfo" id="liveInfo"></span>
+    </div>
+
+    <div class="group" data-i18n="secCost"></div>
+    <div class="field">
+      <label class="fl" for="inEquityCost" data-i18n="fEquityCost"></label>
+      <div class="inp"><input id="inEquityCost" type="text" inputmode="decimal"><span class="sfx">%</span></div>
+    </div>
+    <div class="hintline" id="hEquityMix"></div>
+    <div class="field">
+      <label class="fl" for="inSwapPts" data-i18n="fSwapPts"></label>
+      <div class="inp"><input id="inSwapPts" type="text" inputmode="decimal"><span class="sfx">pips</span></div>
+    </div>
+    <div class="field">
+      <label class="fl" for="inSwapTenor" data-i18n="fSwapTenor"></label>
+      <div class="inp wide-sfx"><input id="inSwapTenor" type="text" inputmode="decimal"><span class="sfx" data-i18n="unitMons"></span></div>
+    </div>
+    <div class="livebar">
+      <button type="button" id="btnSwapLive" class="chipbtn"><span>⟳</span><span data-i18n="swapLiveBtn"></span></button>
+      <span class="liveinfo" id="swapLiveInfo"></span>
+    </div>
+    <div class="hintline" id="hSwapAnnual"></div>
+    <div class="hintline"><a class="fxlink" id="swapLink" data-i18n="swapLink" href="https://www.chinamoney.com.cn/chinese/bkcurvuiruuh/" target="_blank" rel="noopener"></a></div>
+    <div class="hintline fxnote" data-i18n="swapFoot"></div>
+
+    <div class="derived">
+      <div class="row"><span data-i18n="derivedDeferred"></span><b id="dDeferred">—</b></div>
+      <div class="row"><span data-i18n="derivedPer"></span><b id="dPer">—</b></div>
+      <div class="row"><span data-i18n="derivedPayments"></span><b id="dPay">—</b></div>
+      <div class="row"><span data-i18n="derivedFin"></span><b id="dFin">—</b></div>
+    </div>
+  </aside>
+
+  <section class="content">
+    <div class="alert" id="alert" hidden></div>
+
+    <div class="kpis">
+      <div class="kpi navy"><div class="kl" data-i18n="kBuyerTotal"></div><div class="kv" id="kBuyerTotal">—</div><div class="ks" id="kBuyerTotalS"></div></div>
+      <div class="kpi"><div class="kl" data-i18n="kBuyerInt"></div><div class="kv" id="kBuyerInt">—</div><div class="ks" id="kBuyerIntS"></div></div>
+      <div class="kpi"><div class="kl" data-i18n="kDeferred"></div><div class="kv" id="kDeferred">—</div><div class="ks" id="kDeferredS"></div></div>
+      <div class="kpi"><div class="kl" data-i18n="kBuyerIRR"></div><div class="kv" id="kBuyerIRR">—</div><div class="ks" id="kBuyerIRRS"></div></div>
+      <div class="kpi gold"><div class="kl" data-i18n="kFinAmt"></div><div class="kv" id="kFinAmt">—</div><div class="ks" id="kFinAmtS"></div></div>
+      <div class="kpi"><div class="kl" data-i18n="kFinInt"></div><div class="kv" id="kFinInt">—</div><div class="ks" id="kFinIntS"></div></div>
+      <div class="kpi"><div class="kl" data-i18n="kNetCost"></div><div class="kv" id="kNetCost">—</div><div class="ks" id="kNetCostS"></div></div>
+      <div class="kpi"><div class="kl" data-i18n="kSellerCost"></div><div class="kv" id="kSellerCost">—</div><div class="ks" id="kSellerCostS"></div></div>
+    </div>
+
+    <div class="card irrcard">
+      <div class="card-head">
+        <h3 data-i18n="secCompare"></h3>
+        <div class="meta" data-i18n="cmpNote"></div>
+      </div>
+      <div class="irrgrid">
+        <div class="irrcell hero"><div class="kl" data-i18n="cmpBuyer"></div><div class="kv" id="cmpBuyer">—</div></div>
+        <div class="irrcell"><div class="kl" data-i18n="cmpSeller"></div><div class="kv small" id="cmpSeller">—</div></div>
+        <div class="irrcell"><div class="kl" data-i18n="cmpNet"></div><div class="kv small gold" id="cmpNet">—</div></div>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="card">
+        <div class="card-head"><h3 data-i18n="secPremCard"></h3><div class="meta" data-i18n="premCardNote"></div></div>
+        <div class="irrgrid four">
+          <div class="irrcell hero"><div class="kl" data-i18n="premAmt"></div><div class="kv" id="premAmt">—</div></div>
+          <div class="irrcell"><div class="kl" data-i18n="premBaseAmt"></div><div class="kv small" id="premBaseAmt">—</div></div>
+          <div class="irrcell"><div class="kl" data-i18n="premOfDeferred"></div><div class="kv small" id="premOfDeferred">—</div></div>
+          <div class="irrcell"><div class="kl" data-i18n="premBp"></div><div class="kv small gold" id="premBp">—</div></div>
+        </div>
+        <div class="fxrows">
+          <div class="fr"><span data-i18n="premPrepayRow"></span><b id="premPrepay">—</b></div>
+          <div class="fr"><span data-i18n="premFinRow"></span><b id="premFinanced">—</b></div>
+          <div class="fr"><span data-i18n="premNoteRow"></span><b id="premBasisTxt">—</b></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3 data-i18n="secFxLoss"></h3><div class="meta" id="fxLossMeta"></div></div>
+        <div class="irrgrid three">
+          <div class="irrcell hero"><div class="kl" data-i18n="fxSwapAnn"></div><div class="kv" id="fxSwapAnn">—</div></div>
+          <div class="irrcell"><div class="kl" data-i18n="fxLossFull"></div><div class="kv small" id="fxLossFull">—</div></div>
+          <div class="irrcell"><div class="kl" data-i18n="fxLossPct"></div><div class="kv small gold" id="fxLossPct">—</div></div>
+        </div>
+        <div class="fxrows">
+          <div class="fr"><span data-i18n="fxLossActual"></span><b id="fxLossActual">—</b></div>
+          <div class="fr"><span data-i18n="fxFormula"></span><b id="fxFormula">—</b></div>
+          <div class="fr"><a class="fxlink" data-i18n="swapLink2" href="https://www.chinamoney.com.cn/chinese/bkcurvuiruuh/" target="_blank" rel="noopener"></a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="card">
+        <div class="card-head"><h3 data-i18n="secChart"></h3></div>
+        <div class="legend">
+          <span><i style="background:#2c5f96"></i><span data-i18n="chBuyer"></span></span>
+          <span><i style="background:#c8a24a"></i><span data-i18n="chSeller"></span></span>
+        </div>
+        <div class="chartbox" id="chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3 data-i18n="secSens"></h3></div>
+        <div class="senswrap"><table class="sens" id="sensTable"></table></div>
+        <div class="note" data-i18n="sensNote"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3 data-i18n="secBuyer"></h3>
+        <div class="meta" id="buyerMeta"></div>
+      </div>
+      <div class="tblwrap">
+        <table class="grid"><thead id="buyerHead"></thead><tbody id="buyerBody"></tbody></table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3 data-i18n="secSeller"></h3>
+        <div class="meta" id="sellerMeta"></div>
+      </div>
+      <div class="tblwrap">
+        <table class="grid"><thead id="sellerHead"></thead><tbody id="sellerBody"></tbody></table>
+      </div>
+    </div>
+
+    <details class="notes" open>
+      <summary><span data-i18n="secNotes"></span></summary>
+      <div class="body"><ol id="notesList"></ol></div>
+    </details>
+  </section>
+</div>
+
+<footer>
+  <span data-i18n="footer"></span>
+</footer>
+
+<script>
+
+
+
+function toDate(iso) {
+  var p = String(iso).split('-');
+  return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2] || 1));
+}
+function eomAdd(iso, months) {
+  var d = toDate(iso);
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + months + 1, 0));
+}
+function daysBetween(a, b) {
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+function isoOf(d) {
+  var m = String(d.getUTCMonth() + 1), dd = String(d.getUTCDate());
+  return d.getUTCFullYear() + '-' + (m.length < 2 ? '0' + m : m) + '-' + (dd.length < 2 ? '0' + dd : dd);
+}
+function excelSerial(iso) {
+  var d = toDate(iso);
+  return Math.round((Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - Date.UTC(1899, 11, 30)) / 86400000);
+}
+
+
+function xirr(flows) {
+  if (!flows || flows.length < 2) return NaN;
+  var t0 = toDate(flows[0].date).getTime();
+  function npv(r) {
+    var s = 0;
+    for (var i = 0; i < flows.length; i++) {
+      var y = (toDate(flows[i].date).getTime() - t0) / (86400000 * 365);
+      s += flows[i].amount / Math.pow(1 + r, y);
+    }
+    return s;
+  }
+  function dnpv(r) {
+    var s = 0;
+    for (var i = 0; i < flows.length; i++) {
+      var y = (toDate(flows[i].date).getTime() - t0) / (86400000 * 365);
+      s -= y * flows[i].amount / Math.pow(1 + r, y + 1);
+    }
+    return s;
+  }
+  var r = 0.05;
+  for (var k = 0; k < 100; k++) {
+    var f = npv(r);
+    if (!isFinite(f)) break;
+    var d = dnpv(r);
+    if (!isFinite(d) || Math.abs(d) < 1e-14) break;
+    var nr = r - f / d;
+    if (!isFinite(nr)) break;
+    if (Math.abs(nr - r) < 1e-10) { r = nr; break; }
+    r = nr;
+  }
+  if (isFinite(npv(r)) && Math.abs(npv(r)) < 1e-6) return r;
+  var lo = -0.9999, hi = 1.0, flo = npv(lo), fhi = npv(hi);
+  if (!isFinite(flo) || !isFinite(fhi) || flo * fhi > 0) return NaN;
+  for (var j = 0; j < 240; j++) {
+    var mid = (lo + hi) / 2, fm = npv(mid);
+    if (flo * fm <= 0) { hi = mid; fhi = fm; } else { lo = mid; flo = fm; }
+  }
+  return (lo + hi) / 2;
+}
+
+
+/* ============================ XLSX writer ============================ */
+var CRC_TABLE = (function () {
+  var t = new Int32Array(256);
+  for (var n = 0; n < 256; n++) {
+    var c = n;
+    for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c;
+  }
+  return t;
+})();
+
+function crc32(u8) {
+  var c = 0xFFFFFFFF;
+  for (var i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+function strBytes(s) {
+  if (typeof TextEncoder !== 'undefined') return new TextEncoder().encode(s);
+  var b = Buffer.from(s, 'utf8');
+  return new Uint8Array(b);
+}
+
+function zipStore(files) {
+  var parts = [], central = [], offset = 0;
+  var enc = strBytes;
+  files.forEach(function (f) {
+    var name = enc(f.name);
+    var data = f.data;
+    var crc = crc32(data);
+    var lh = new Uint8Array(30 + name.length);
+    var dv = new DataView(lh.buffer);
+    dv.setUint32(0, 0x04034b50, true);
+    dv.setUint16(4, 20, true);
+    dv.setUint16(6, 0x0800, true);
+    dv.setUint16(8, 0, true);
+    dv.setUint16(10, 0, true);
+    dv.setUint16(12, 0x21, true);
+    dv.setUint32(14, crc, true);
+    dv.setUint32(18, data.length, true);
+    dv.setUint32(22, data.length, true);
+    dv.setUint16(26, name.length, true);
+    dv.setUint16(28, 0, true);
+    lh.set(name, 30);
+    parts.push(lh, data);
+
+    var cd = new Uint8Array(46 + name.length);
+    var cv = new DataView(cd.buffer);
+    cv.setUint32(0, 0x02014b50, true);
+    cv.setUint16(4, 20, true);
+    cv.setUint16(6, 20, true);
+    cv.setUint16(8, 0x0800, true);
+    cv.setUint16(10, 0, true);
+    cv.setUint16(12, 0, true);
+    cv.setUint16(14, 0x21, true);
+    cv.setUint32(16, crc, true);
+    cv.setUint32(20, data.length, true);
+    cv.setUint32(24, data.length, true);
+    cv.setUint16(28, name.length, true);
+    cv.setUint32(42, offset, true);
+    cd.set(name, 46);
+    central.push(cd);
+    offset += lh.length + data.length;
+  });
+  var cdSize = 0;
+  central.forEach(function (c) { cdSize += c.length; });
+  var eocd = new Uint8Array(22);
+  var ev = new DataView(eocd.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(8, files.length, true);
+  ev.setUint16(10, files.length, true);
+  ev.setUint32(12, cdSize, true);
+  ev.setUint32(16, offset, true);
+  var total = offset + cdSize + 22;
+  var out = new Uint8Array(total);
+  var pos = 0;
+  parts.forEach(function (p) { out.set(p, pos); pos += p.length; });
+  central.forEach(function (p) { out.set(p, pos); pos += p.length; });
+  out.set(eocd, pos);
+  return out;
+}
+
+function xmlEsc(s) {
+  return String(s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c];
+  });
+}
+
+function colName(n) {
+  var s = '';
+  while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); }
+  return s;
+}
+
+/* cell: null | string | number | {v, s, f, type} */
+function cellXml(ref, c) {
+  if (c === null || c === undefined || c === '') return '';
+  if (typeof c === 'string') {
+    return '<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' + xmlEsc(c) + '</t></is></c>';
+  }
+  if (typeof c === 'number') {
+    return '<c r="' + ref + '"><v>' + (isFinite(c) ? c : 0) + '</v></c>';
+  }
+  var attrs = ' r="' + ref + '"';
+  if (c.s != null) attrs += ' s="' + c.s + '"';
+  if (c.type === 'str' || typeof c.v === 'string') {
+    return '<c' + attrs + ' t="inlineStr"><is><t xml:space="preserve">' + xmlEsc(c.v == null ? '' : c.v) + '</t></is></c>';
+  }
+  if (c.f) {
+    return '<c' + attrs + '><f>' + xmlEsc(c.f) + '</f><v>' + (c.v == null ? 0 : c.v) + '</v></c>';
+  }
+  return '<c' + attrs + '><v>' + (c.v == null ? 0 : c.v) + '</v></c>';
+}
+
+function sheetXml(rows, opts) {
+  opts = opts || {};
+  var maxCol = 1;
+  rows.forEach(function (r) { if (r && r.length > maxCol) maxCol = r.length; });
+  var dim = 'A1:' + colName(maxCol) + rows.length;
+  var cols = '';
+  if (opts.widths) {
+    cols = '<cols>' + opts.widths.map(function (w, i) {
+      return '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>';
+    }).join('') + '</cols>';
+  }
+  var sheetData = rows.map(function (row, ri) {
+    if (!row || row.length === 0) return '<row r="' + (ri + 1) + '"/>';
+    var cells = row.map(function (c, ci) {
+      if (c === null || c === undefined || c === '') return '';
+      return cellXml(colName(ci + 1) + (ri + 1), c);
+    }).join('');
+    var h = '';
+    if (opts.headerHeight && ri === 0) h = ' ht="' + opts.headerHeight + '" customHeight="1"';
+    return '<row r="' + (ri + 1) + '"' + h + '>' + cells + '</row>';
+  }).join('');
+  var pane = '';
+  if (opts.freeze) {
+    var ref = 'A' + (opts.freeze + 1);
+    pane = '<pane ySplit="' + opts.freeze + '" topLeftCell="' + ref + '" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="' + ref + '" sqref="' + ref + '"/>';
+  }
+  var merges = '';
+  if (opts.merges && opts.merges.length) {
+    merges = '<mergeCells count="' + opts.merges.length + '">' + opts.merges.map(function (m) {
+      return '<mergeCell ref="' + m + '"/>';
+    }).join('') + '</mergeCells>';
+  }
+  var pageSetup = opts.landscape ? '<pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/>' : '';
+  var sheetPr = opts.landscape ? '<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>' : '';
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+    sheetPr +
+    '<dimension ref="' + dim + '"/>' +
+    '<sheetViews><sheetView workbookViewId="0" showGridLines="0">' + pane + '</sheetView></sheetViews>' +
+    '<sheetFormatPr defaultRowHeight="15"/>' + cols +
+    '<sheetData>' + sheetData + '</sheetData>' + merges +
+    '<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/>' + pageSetup +
+    '</worksheet>';
+}
+
+var STYLES_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+  '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+  '<numFmts count="5">' +
+  '<numFmt numFmtId="164" formatCode="#,##0.00"/>' +
+  '<numFmt numFmtId="165" formatCode="#,##0"/>' +
+  '<numFmt numFmtId="166" formatCode="0.00%"/>' +
+  '<numFmt numFmtId="167" formatCode="yyyy-mm-dd"/>' +
+  '<numFmt numFmtId="168" formatCode="0.0000%"/>' +
+  '<numFmt numFmtId="169" formatCode="0.00"/>' +
+  '</numFmts>' +
+  '<fonts count="4">' +
+  '<font><sz val="11"/><color rgb="FF1F2A37"/><name val="Calibri"/></font>' +
+  '<font><b/><sz val="11"/><color rgb="FF1F2A37"/><name val="Calibri"/></font>' +
+  '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>' +
+  '<font><i/><sz val="10"/><color rgb="FF6B7785"/><name val="Calibri"/></font>' +
+  '</fonts>' +
+  '<fills count="5">' +
+  '<fill><patternFill patternType="none"/></fill>' +
+  '<fill><patternFill patternType="gray125"/></fill>' +
+  '<fill><patternFill patternType="solid"><fgColor rgb="FF14335C"/><bgColor indexed="64"/></patternFill></fill>' +
+  '<fill><patternFill patternType="solid"><fgColor rgb="FFEDF2F8"/><bgColor indexed="64"/></patternFill></fill>' +
+  '<fill><patternFill patternType="solid"><fgColor rgb="FFFBF4E2"/><bgColor indexed="64"/></patternFill></fill>' +
+  '</fills>' +
+  '<borders count="2"><border/><border>' +
+  '<left/><right/><top/><bottom style="thin"><color rgb="FFD7E0EA"/></bottom><diagonal/>' +
+  '</border></borders>' +
+  '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+  '<cellXfs count="13">' +
+  '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+  '<xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>' +
+  '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>' +
+  '<xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="center"/></xf>' +
+  '<xf numFmtId="165" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+  '<xf numFmtId="166" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+  '<xf numFmtId="167" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+  '<xf numFmtId="0" fontId="1" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="center"/></xf>' +
+  '<xf numFmtId="164" fontId="1" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="center"/></xf>' +
+  '<xf numFmtId="0" fontId="1" fillId="3" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="center"/></xf>' +
+  '<xf numFmtId="168" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+  '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>' +
+  '<xf numFmtId="169" fontId="0" fillId="0" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>' +
+  '</cellXfs>' +
+  '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
+  '</styleSheet>';
+
+var ST = { head: 1, text: 2, money: 3, int: 4, pct: 5, date: 6, boldText: 7, boldMoney: 8, section: 9, pct4: 10, note: 11, num2: 12 };
+
+
+
+/* ================= Supplier credit model — app ================= */
+var LANGS = ['zh', 'en', 'fr'];
+var LANG_IDX = { zh: 0, en: 1, fr: 2 };
+var DICT = {
+  appTitle: ['ECA支持卖方信贷计算器', 'ECA-Supported Seller Credit Calculator', 'Calculateur de crédit fournisseur soutenu par l’ECA'],
+  appSub: ['出口商延期付款 · 买方与卖方双账本', 'Exporter deferred payment · buyer and seller ledgers', 'Paiement différé exportateur · livres acheteur et vendeur'],
+  export: ['导出 Excel', 'Export Excel', 'Exporter Excel'],
+  print: ['打印', 'Print', 'Imprimer'],
+  reset: ['重置', 'Reset', 'Réinitialiser'],
+  swapLiveBtn: ['刷新{t}掉期点', 'Refresh {t} swap pips', 'Actualiser les points {t}'],
+  swapLiveBusy: ['刷新中…', 'Refreshing…', 'Actualisation…'],
+  swapLiveOk: ['已更新', 'Updated', 'Mis à jour'],
+  swapLiveFail: ['获取失败，保留当前值（可手动修改）', 'Fetch failed; value kept (editable)', 'Échec ; valeur conservée (modifiable)'],
+  swapSrcLive: ['在线', 'live', 'en ligne'],
+  swapSrcDefault: ['默认值', 'default', 'valeur par défaut'],
+  swapSrcManual: ['手动', 'manual', 'manuel'],
+  swapLiveSnap: ['最新公布值', 'latest published', 'dernière valeur publiée'],
+  secAssumptions: ['参数假设', 'Assumptions', 'Hypothèses'],
+  readme: ['调整左侧参数，买卖双方账本与成本实时重算。', 'Adjust inputs on the left; both ledgers recalculate live.', 'Ajustez les paramètres ; les deux livres se recalculent.'],
+  fPrice: ['合同金额', 'Contract price', 'Prix du contrat'],
+  fStart: ['起算日（发货日）', 'Start date (shipment)', 'Date de départ (expédition)'],
+  fDown: ['预付款比例', 'Down payment', 'Acompte'],
+  fTenor: ['还款期', 'Repayment tenor', 'Durée de remboursement'],
+  fFreq: ['每年还款次数', 'Payments per year', 'Paiements par an'],
+  fGrace: ['宽限期', 'Grace period', 'Différé'],
+  fFree: ['买方免息', 'Interest-free for buyer', "Sans intérêts pour l'acheteur"],
+  swapLink: ['查询中国货币网最新掉期点（外币隐含利率曲线）→', 'Check latest swap points on ChinaMoney →', 'Consulter les derniers points de swap sur ChinaMoney →'],
+  swapFoot: ['掉期点按卖出美元/买入人民币方向填，负值表示远期人民币升水；已按期限年化计入资金成本。4Y/5Y 中国货币网为静态曲线文件，刷新按最新公布值填入，可点上方链接核对。', 'Enter points for selling USD buying CNY; a negative quote means CNY forward premium, annualised into funding cost. For 4Y/5Y ChinaMoney publishes a static curve file, so refresh loads the latest published value; verify via the link above.', 'Points pour vendre USD contre CNY ; une cote négative = prime à terme du CNY, annualisée dans le coût. Pour 4Y/5Y, ChinaMoney publie un fichier de courbe statique : l’actualisation reprend la dernière valeur publiée, à vérifier via le lien ci-dessus.'],
+  fRate: ['延期付款利率（卖方收取）', 'Deferred payment rate (charged by seller)', 'Taux de paiement différé (facturé par le vendeur)'],
+  fBasis: ['计息基础', 'Day count basis', 'Base de calcul'],
+  fFinRatio: ['银行融资比例（占延期本金）', 'Bank financing ratio (of deferred)', 'Ratio bancaire (du différé)'],
+  fFinRate: ['融资利率', 'Financing rate', 'Taux de financement'],
+  fCur: ['币种', 'Currency', 'Devise'],
+  unitMons: ['月', 'mo', 'mois'],
+  hintTenor: ['≈ {y} 年 · 共 {n} 期', '≈ {y} years · {n} installments', '≈ {y} ans · {n} échéances'],
+  derivedDeferred: ['延期付款本金', 'Deferred principal', 'Principal différé'],
+  derivedPer: ['每期还本', 'Principal per installment', 'Principal par échéance'],
+  derivedPayments: ['还款期数', 'Number of installments', "Nombre d'échéances"],
+  derivedFin: ['卖方融资额', 'Seller facility', 'Financement vendeur'],
+  kBuyerTotal: ['买方总付款', 'Buyer total payment', 'Paiement total acheteur'],
+  kBuyerInt: ['其中利息', 'Of which interest', "Dont intérêts"],
+  kDeferred: ['延期本金', 'Deferred principal', 'Principal différé'],
+  kBuyerIRR: ['卖方期初现金流入', 'Seller initial cash inflow', 'Encaissement initial vendeur'],
+  fEquityCost: ['自有资金机会成本（年化）', 'Own-funds opportunity cost (annual)', 'Coût d’opportunité des fonds propres (annuel)'],
+  kFinAmt: ['银行融资额', 'Bank facility', 'Financement bancaire'],
+  kFinInt: ['融资利息', 'Financing interest', 'Intérêts de financement'],
+  kNetCost: ['自有资金成本', 'Own-funds cost', 'Coût des fonds propres'],
+  kSellerCost: ['卖方全口径成本', 'Seller all-in cost', 'Coût global vendeur'],
+  secCompare: ['双方成本对比', 'Cost comparison', 'Comparaison des coûts'],
+  cmpBuyer: ['银行融资利率', 'Bank financing rate', 'Taux bancaire'],
+  cmpSeller: ['自有资金机会成本', 'Own-funds cost', 'Coût des fonds propres'],
+  cmpNet: ['卖方净资金成本（年化）', 'Seller net funding cost (annualised)', 'Coût net vendeur (annualisé)'],
+  cmpNote: ['买方成本＝付款现金流 IRR；卖方净资金成本＝（融资利息 − 买方利息）÷ 融资额 ÷ 加权年限。', 'Buyer cost = IRR of payment flows; seller net cost = (loan interest − buyer interest) ÷ facility ÷ weighted life.', 'Coût acheteur = TRI des paiements ; coût net vendeur = (intérêts du prêt − intérêts facturés) ÷ financement ÷ durée moyenne.'],
+  secChart: ['现金流', 'Cash flows', 'Flux de trésorerie'],
+  chBuyer: ['买方付款', 'Buyer payments', 'Paiements acheteur'],
+  chSeller: ['卖方净现金流', 'Seller net cash flow', 'Flux net vendeur'],
+  secSens: ['还款频率影响', 'Frequency sensitivity', 'Sensibilité à la fréquence'],
+  sensFreq: ['每年次数', 'Per year', 'Par an'],
+  sensBuyerInt: ['买方利息', 'Buyer interest', 'Intérêts acheteur'],
+  sensFinInt: ['融资利息', 'Financing interest', 'Intérêts financement'],
+  sensEquity: ['自有资金成本', 'Own-funds cost', 'Fonds propres'],
+  sensNet: ['掉期成本', 'Swap cost', 'Swap'],
+  sensSeller: ['卖方成本', 'Seller cost', 'Coût vendeur'],
+  sensNote: ['同一笔合同，仅改变还款频率；频率越高利息越少、卖方资金占用越短。', 'Same contract, frequency only; more frequent payments reduce interest and funding period.', 'Même contrat, seule la fréquence change ; des paiements plus fréquents réduisent les intérêts.'],
+  secBuyerTerms: ['买方付款条件', 'Buyer payment terms', 'Conditions de paiement acheteur'],
+  secPrem: ['ECA 保费（出口商承担）', 'ECA premium (borne by exporter)', 'Prime ECA (à la charge de l’exportateur)'],
+  fPremRate: ['保费费率', 'Premium rate', 'Taux de prime'],
+  premRateHint: ['参考：3年期 A/B/C 类 1.00%/1.50%/2.50%，10年期 2.15%/2.86%/5.36%', 'Ref: 3Y class A/B/C 1.00%/1.50%/2.50%; 10Y 2.15%/2.86%/5.36%', 'Réf. : 3 ans A/B/C 1,00 %/1,50 %/2,50 % ; 10 ans 2,15 %/2,86 %/5,36 %'],
+  fPremBasis: ['保费计费基础', 'Premium basis', 'Base de prime'],
+  optPI: ['本+息', 'Principal + Interest', 'Principal + Intérêts'],
+  optP: ['仅本金', 'Principal only', 'Principal seul'],
+  fPremFin: ['保费融资比例', 'Premium financing', 'Financement de la prime'],
+  secPremCard: ['保费成本', 'Premium cost', 'Coût de la prime'],
+  premCardNote: ['一次性、放款前支付；可融资部分计入银行融资', 'One-off, paid before drawdown; financed part added to the bank facility', 'Paiement unique avant tirage ; la part financée s’ajoute au crédit bancaire'],
+  premAmt: ['保费总额', 'Total premium', 'Prime totale'],
+  premBaseAmt: ['保险金额（计费基数）', 'Insured amount (basis)', 'Montant assuré (base)'],
+  premOfDeferred: ['占延期本金', 'of deferred principal', 'du principal différé'],
+  premBp: ['平摊到全口径', 'Spread to all-in', 'Étalement sur le coût global'],
+  premPrepayRow: ['其中出口商自付', 'Paid upfront by exporter', 'Payé comptant par l’exportateur'],
+  premFinRow: ['其中融资', 'Financed', 'Financé'],
+  premNoteRow: ['计费口径', 'Basis', 'Base de calcul'],
+  secFxLoss: ['中长期汇率损失（掉期点）', 'Medium/long-term FX loss (swap points)', 'Perte de change moyen/long terme (points de swap)'],
+  fxSwapAnn: ['掉期年化成本', 'Annualised swap cost', 'Coût de swap annualisé'],
+  fxLossFull: ['全额本金累计损失', 'Full-principal cumulative loss', 'Perte cumulée sur principal entier'],
+  fxLossPct: ['占延期本金', 'of deferred principal', 'du principal différé'],
+  fxLossActual: ['按实际摊还余额累计', 'On actual amortising balance', 'Sur solde réel amorti'],
+  fxFormula: ['掉期点 ÷ 即期', 'Points ÷ spot', 'Points ÷ spot'],
+  fxNoSwap: ['CNY 合同 · 无需掉期', 'CNY contract · no swap', 'Contrat CNY · pas de swap'],
+  fxLossMeta: ['按 {t} 个月掉期点折算，人民币升值方向的损失', 'Converted at the {t}-month swap points, loss from CNY appreciation', 'Converti aux points de swap {t} mois, perte liée à l’appréciation du CNY'],
+  swapLink2: ['查询中国货币网最新掉期点 →', 'Check latest swap points →', 'Consulter les derniers points de swap →'],
+  secSellerFin: ['卖方融资', 'Seller financing', 'Financement vendeur'],
+  secBuyer: ['买方账本', 'Buyer ledger', 'Livre acheteur'],
+  secSeller: ['卖方账本', 'Seller ledger', 'Livre vendeur'],
+  thPeriod: ['期次', 'No.', 'N°'],
+  thDate: ['日期', 'Date', 'Date'],
+  thDays: ['天数', 'Days', 'Jours'],
+  thOpening: ['期初本金', 'Opening principal', 'Principal initial'],
+  thPrincipal: ['本金', 'Principal', 'Principal'],
+  thInterest: ['利息', 'Interest', 'Intérêts'],
+  thPayment: ['本息合计', 'Payment', 'Échéance'],
+  thClosing: ['期末本金', 'Closing principal', 'Principal final'],
+  thBuyerPay: ['买方付款', 'Buyer payment', 'Paiement acheteur'],
+  thLoanOpen: ['融资余额', 'Loan balance', 'Solde du prêt'],
+  thLoanPrin: ['还本', 'Loan principal', 'Principal du prêt'],
+  thLoanInt: ['融资利息', 'Loan interest', 'Intérêts du prêt'],
+  thLoanSvc: ['还本付息', 'Debt service', 'Service de la dette'],
+  thNet: ['卖方净现金流', 'Seller net cash flow', 'Flux net vendeur'],
+  buyerMeta: ['延期 {d} · 每期 {p}', 'Deferred {d} · per installment {p}', 'Différé {d} · par échéance {p}'],
+  sellerMeta: ['融资 {f} · 利率 {r}', 'Financed {f} · rate {r}', 'Financement {f} · taux {r}'],
+  totalRow: ['合计', 'Total', 'Total'],
+  liveBtn: ['刷新实时汇率', 'Refresh live FX', 'Actualiser le change'],
+  liveOk: ['实时', 'Live', 'En direct'],
+  liveRef: ['官方参考', 'Official reference', 'Référence officielle'],
+  liveFail: ['取数失败', 'Fetch failed', 'Échec de récupération'],
+  liveIdle: ['按默认值，可手动修改', 'Default value, editable', 'Valeur par défaut, modifiable'],
+  freeOn: ['免息：买方不付利息', 'Interest-free: buyer pays no interest', "Sans intérêts : l'acheteur n'en paie pas"],
+  freeOff: ['计息：按下方利率向买方收息', 'Interest charged at the rate below', "Intérêts facturés au taux ci-dessous"],
+  secNotes: ['口径说明', 'Method notes', 'Notes de méthode'],
+  note1: ['买方账本：预付款在起算日支付，其余本金在宽限期后按期等额偿还；利息按实际天数 / 计息基础计算。', 'Buyer ledger: down payment at start, principal amortised equally after grace; interest on actual days / basis.', "Livre acheteur : acompte au départ, principal amorti après le différé ; intérêts selon jours réels / base."],
+  note2: ['卖方账本：发货日收到预付款，并按融资比例取得融资款；每期以买方回款偿还融资本息，差额即卖方净现金流。', 'Seller ledger: down payment plus facility drawn at start; buyer receipts service the loan each period; the gap is the seller net cash flow.', "Livre vendeur : acompte et tirage du financement au départ ; les encaissements servent le prêt ; l'écart est le flux net."],
+  note3: ['卖方净资金成本＝（融资利息 − 向买方收取的利息）÷ 融资额 ÷ 融资加权年限；融资比例高于延期比例时会出现超额提款，不影响该指标口径。', 'Seller net funding cost = (loan interest − interest charged to buyer) ÷ facility ÷ weighted loan life; over-borrowing when the ratio exceeds the deferred share does not change the definition.', 'Coût net vendeur = (intérêts du prêt − intérêts facturés) ÷ financement ÷ durée moyenne ; le sur-financement ne change pas la définition.'],
+  note4: ['银行融资比例默认 90%，按延期本金计；自有资金机会成本可按公司 ROIC 或 ROE 填写；汇率可一键刷新或手动锁汇。', 'Bank financing defaults to 90% of deferred principal; own-funds cost can follow company ROIC or ROE; FX refreshable or lockable.', 'Financement bancaire 90 % du principal différé ; coût des fonds propres selon ROIC ou ROE ; change actualisable ou verrouillable.'],
+  note5: ['所有金额四舍五入到整数；日期按起算日逐期推进，遇月末自动对齐。', 'Amounts rounded to whole units; dates roll forward from the start date, month-end aligned.', 'Montants arrondis ; dates calculées depuis la date de départ, fin de mois alignée.'],
+  footer: ['ECA 支持卖方信贷 · 买卖双方双账本模型', 'ECA-supported seller credit · dual-ledger model', 'Crédit fournisseur soutenu par l’ECA · modèle à double livre'],
+  alertGrace: ['宽限期需小于还款期', 'Grace period must be shorter than the tenor', 'Le différé doit être inférieur à la durée'],
+  alertFin: ['卖方融资比例最高 90%', 'Seller financing is capped at 90%', 'Le financement vendeur est plafonné à 90 %'],
+  curHint: ['切换币种仅改变金额符号，不做折算', 'Currency changes the symbol only, no conversion', 'La devise change le symbole seulement'],
+  netGain: ['净收益', 'Net gain', 'Gain net'],
+  kSellerNote: ['银行利息＋自有资金成本＋掉期，÷延期本金÷加权年限', 'bank + own funds + swap ÷ deferred ÷ weighted life', 'banque + fonds propres + swap ÷ différé ÷ durée moyenne'],
+  kFinIntNote: ['按融资余额逐期计息', 'Interest on loan balance each period', 'Intérêts sur solde du prêt'],
+  kBuyerIRRNote: ['预付款＋银行提款，折人民币', 'Down payment + bank drawdown, in CNY', 'Acompte + tirage bancaire, en CNY'],
+  kFreeNote: ['买方零成本，卖方承担资金成本', 'Zero cost to buyer, funding cost borne by seller', 'Coût nul acheteur, coût porté par le vendeur']
+};
+var EXTRA = {
+pt: {
+  appTitle: 'Calculadora ECA de Crédito Fornecedor', appSub: 'Pagamento diferido do exportador · livros do comprador e do vendedor',
+  export: 'Exportar Excel', print: 'Imprimir', reset: 'Repor',
+  secAssumptions: 'Pressupostos', readme: 'Ajuste os parâmetros à esquerda; ambos os livros são recalculados.',
+  fPrice: 'Preço do contrato', fStart: 'Data de início (expedição)', fDown: 'Entrada inicial', fTenor: 'Prazo de reembolso',
+  fFreq: 'Pagamentos por ano', fGrace: 'Período de carência', fFree: 'Isento de juros para o comprador', fRate: 'Taxa de juro do comprador',
+  fBasis: 'Base de contagem', fFinRatio: 'Rácio de financiamento do vendedor', fFinRate: 'Taxa de financiamento', fCur: 'Moeda',
+  unitMons: 'mês', hintTenor: '≈ {y} anos · {n} prestações', derivedDeferred: 'Principal diferido', derivedPer: 'Principal por prestação',
+  derivedPayments: 'Número de prestações', derivedFin: 'Financiamento do vendedor', kBuyerTotal: 'Pagamento total do comprador',
+  kBuyerInt: 'Dos quais juros', kDeferred: 'Principal diferido', kBuyerIRR: 'Custo anual do comprador', kFinAmt: 'Financiamento do vendedor',
+  kFinInt: 'Juros de financiamento', kNetCost: 'Custo líquido de financiamento', kSellerCost: 'Custo líquido do vendedor',
+  secCompare: 'Comparação de custos', cmpBuyer: 'Custo anual do comprador', cmpSeller: 'Taxa de financiamento do vendedor',
+  cmpNet: 'Custo líquido do vendedor (anualizado)', cmpNote: 'Custo do comprador = TIR dos seus pagamentos; custo líquido do vendedor = (juros do empréstimo − juros cobrados) ÷ financiamento ÷ duração média.',
+  secChart: 'Fluxos de caixa', chBuyer: 'Pagamentos do comprador', chSeller: 'Fluxo líquido do vendedor',
+  secSens: 'Sensibilidade à frequência', sensFreq: 'Por ano', sensBuyerInt: 'Juros do comprador', sensFinInt: 'Juros de financiamento',
+  sensNet: 'Custo líquido', sensSeller: 'Custo do vendedor', sensNote: 'Mesmo contrato, apenas a frequência muda; pagamentos mais frequentes reduzem juros e prazo de financiamento.',
+  secBuyer: 'Livro do comprador', secSeller: 'Livro do vendedor', thPeriod: 'N.º', thDate: 'Data', thDays: 'Dias',
+  thOpening: 'Principal inicial', thPrincipal: 'Principal', thInterest: 'Juros', thPayment: 'Prestação', thClosing: 'Principal final',
+  thBuyerPay: 'Pagamento do comprador', thLoanOpen: 'Saldo do empréstimo', thLoanPrin: 'Principal do empréstimo', thLoanInt: 'Juros do empréstimo',
+  thLoanSvc: 'Serviço da dívida', thNet: 'Fluxo líquido do vendedor', buyerMeta: 'Diferido {d} · por prestação {p}',
+  sellerMeta: 'Financiado {f} · taxa {r}', totalRow: 'Total', liveBtn: 'Atualizar câmbio', liveOk: 'Em direto',
+  liveRef: 'Referência oficial', liveFail: 'Falha na obtenção', liveIdle: 'Valor predefinido, editável',
+  freeOn: 'Isento: o comprador não paga juros', freeOff: 'Com juros: cobrados à taxa abaixo', secNotes: 'Notas de método',
+  note1: 'Livro do comprador: entrada no início, principal amortizado em prestações iguais após a carência; juros por dias reais / base.',
+  note2: 'Livro do vendedor: entrada e financiamento no início; os recebimentos do comprador servem o empréstimo; a diferença é o fluxo líquido.',
+  note3: 'Custo líquido do vendedor = (juros do empréstimo − juros cobrados) ÷ financiamento ÷ duração média; o sobre-financiamento não altera a definição.',
+  note4: 'A taxa de financiamento usa o LPR a 5 anos, atualizável ou editável; financiamento limitado a 90 %.',
+  note5: 'Montantes arredondados; datas calculadas desde o início, alinhadas ao fim do mês.',
+  footer: 'Crédito fornecedor com apoio ECA · modelo de duplo livro', alertGrace: 'O período de carência deve ser inferior ao prazo',
+  alertFin: 'O financiamento do vendedor está limitado a 90 %', curHint: 'A moeda altera apenas o símbolo, sem conversão',
+  netGain: 'Ganho líquido', kSellerNote: 'custo líquido ÷ financiamento ÷ duração média',
+  kFinIntNote: 'Juros sobre o saldo em cada período', kBuyerIRRNote: 'TIR dos pagamentos do comprador',
+  secBuyerTerms: 'Condições de pagamento do comprador', secSellerFin: 'Financiamento do vendedor'
+},
+es: {
+  appTitle: 'Calculadora ECA de Crédito de Proveedor', appSub: 'Pago aplazado del exportador · libros del comprador y del vendedor',
+  export: 'Exportar Excel', print: 'Imprimir', reset: 'Restablecer',
+  secAssumptions: 'Supuestos', readme: 'Ajuste los parámetros a la izquierda; ambos libros se recalculan.',
+  fPrice: 'Precio del contrato', fStart: 'Fecha de inicio (expedición)', fDown: 'Entrada inicial', fTenor: 'Plazo de reembolso',
+  fFreq: 'Pagos por año', fGrace: 'Periodo de carencia', fFree: 'Sin intereses para el comprador', fRate: 'Tipo de interés del comprador',
+  fBasis: 'Base de cálculo', fFinRatio: 'Ratio de financiación del vendedor', fFinRate: 'Tipo de financiación', fCur: 'Moneda',
+  unitMons: 'mes', hintTenor: '≈ {y} años · {n} cuotas', derivedDeferred: 'Principal diferido', derivedPer: 'Principal por cuota',
+  derivedPayments: 'Número de cuotas', derivedFin: 'Financiación del vendedor', kBuyerTotal: 'Pago total del comprador',
+  kBuyerInt: 'De los cuales intereses', kDeferred: 'Principal diferido', kBuyerIRR: 'Coste anual del comprador', kFinAmt: 'Financiación del vendedor',
+  kFinInt: 'Intereses de financiación', kNetCost: 'Coste neto de financiación', kSellerCost: 'Coste neto del vendedor',
+  secCompare: 'Comparación de costes', cmpBuyer: 'Coste anual del comprador', cmpSeller: 'Tipo de financiación del vendedor',
+  cmpNet: 'Coste neto del vendedor (anualizado)', cmpNote: 'Coste del comprador = TIR de sus pagos; coste neto del vendedor = (intereses del préstamo − intereses cobrados) ÷ financiación ÷ duración media.',
+  secChart: 'Flujos de caja', chBuyer: 'Pagos del comprador', chSeller: 'Flujo neto del vendedor',
+  secSens: 'Sensibilidad a la frecuencia', sensFreq: 'Por año', sensBuyerInt: 'Intereses del comprador', sensFinInt: 'Intereses de financiación',
+  sensNet: 'Coste neto', sensSeller: 'Coste del vendedor', sensNote: 'Mismo contrato, solo cambia la frecuencia; pagos más frecuentes reducen intereses y plazo de financiación.',
+  secBuyer: 'Libro del comprador', secSeller: 'Libro del vendedor', thPeriod: 'N.º', thDate: 'Fecha', thDays: 'Días',
+  thOpening: 'Principal inicial', thPrincipal: 'Principal', thInterest: 'Intereses', thPayment: 'Cuota', thClosing: 'Principal final',
+  thBuyerPay: 'Pago del comprador', thLoanOpen: 'Saldo del préstamo', thLoanPrin: 'Principal del préstamo', thLoanInt: 'Intereses del préstamo',
+  thLoanSvc: 'Servicio de la deuda', thNet: 'Flujo neto del vendedor', buyerMeta: 'Diferido {d} · por cuota {p}',
+  sellerMeta: 'Financiado {f} · tipo {r}', totalRow: 'Total', liveBtn: 'Actualizar cambio', liveOk: 'En directo',
+  liveRef: 'Referencia oficial', liveFail: 'Error de obtención', liveIdle: 'Valor por defecto, editable',
+  freeOn: 'Sin intereses: el comprador no paga', freeOff: 'Con intereses: cobrados al tipo inferior', secNotes: 'Notas de método',
+  note1: 'Libro del comprador: entrada al inicio, principal amortizado en cuotas iguales tras la carencia; intereses por días reales / base.',
+  note2: 'Libro del vendedor: entrada y financiación al inicio; los cobros del comprador atienden el préstamo; la diferencia es el flujo neto.',
+  note3: 'Coste neto del vendedor = (intereses del préstamo − intereses cobrados) ÷ financiación ÷ duración media; el sobre-financiamiento no cambia la definición.',
+  note4: 'El tipo de financiación usa el LPR a 5 años, actualizable o editable; financiación limitada al 90 %.',
+  note5: 'Importes redondeados; fechas calculadas desde el inicio, alineadas a fin de mes.',
+  footer: 'Crédito de proveedor con apoyo ECA · modelo de doble libro', alertGrace: 'El periodo de carencia debe ser inferior al plazo',
+  alertFin: 'La financiación del vendedor está limitada al 90 %', curHint: 'La moneda solo cambia el símbolo, sin conversión',
+  netGain: 'Ganancia neta', kSellerNote: 'coste neto ÷ financiación ÷ duración media',
+  kFinIntNote: 'Intereses sobre el saldo cada periodo', kBuyerIRRNote: 'TIR de los pagos del comprador',
+  secBuyerTerms: 'Condiciones de pago del comprador', secSellerFin: 'Financiación del vendedor'
+},
+ar: {
+  appTitle: 'حاسبة ائتمان المورد المدعومة من ECA', appSub: 'دفع مؤجل من المصدر · دفترا المشتري والبائع',
+  export: 'تصدير Excel', print: 'طباعة', reset: 'إعادة تعيين',
+  secAssumptions: 'الافتراضات', readme: 'اضبط المعلمات على اليسار؛ يُعاد حساب الدفترين تلقائياً.',
+  fPrice: 'سعر العقد', fStart: 'تاريخ البدء (الشحن)', fDown: 'الدفعة المقدمة', fTenor: 'مدة السداد',
+  fFreq: 'عدد الدفعات سنوياً', fGrace: 'فترة السماح', fFree: 'بدون فوائد للمشتري', fRate: 'سعر فائدة المشتري',
+  fBasis: 'أساس حساب الأيام', fFinRatio: 'نسبة تمويل البائع', fFinRate: 'سعر التمويل', fCur: 'العملة',
+  unitMons: 'شهر', hintTenor: '≈ {y} سنوات · {n} قسطاً', derivedDeferred: 'الأصل المؤجل', derivedPer: 'الأصل لكل قسط',
+  derivedPayments: 'عدد الأقساط', derivedFin: 'تمويل البائع', kBuyerTotal: 'إجمالي مدفوعات المشتري',
+  kBuyerInt: 'منها فوائد', kDeferred: 'الأصل المؤجل', kBuyerIRR: 'التكلفة السنوية للمشتري', kFinAmt: 'تمويل البائع',
+  kFinInt: 'فوائد التمويل', kNetCost: 'تكلفة التمويل الصافية', kSellerCost: 'التكلفة الصافية للبائع',
+  secCompare: 'مقارنة التكاليف', cmpBuyer: 'التكلفة السنوية للمشتري', cmpSeller: 'سعر تمويل البائع',
+  cmpNet: 'التكلفة الصافية للبائع (سنوياً)', cmpNote: 'تكلفة المشتري = معدل العائد الداخلي لمدفوعاته؛ التكلفة الصافية للبائع = (فوائد القرض − الفوائد المحصلة) ÷ التمويل ÷ المدة المتوسطة.',
+  secChart: 'التدفقات النقدية', chBuyer: 'مدفوعات المشتري', chSeller: 'التدفق الصافي للبائع',
+  secSens: 'حساسية عدد الدفعات', sensFreq: 'سنوياً', sensBuyerInt: 'فوائد المشتري', sensFinInt: 'فوائد التمويل',
+  sensNet: 'التكلفة الصافية', sensSeller: 'تكلفة البائع', sensNote: 'نفس العقد، يتغير عدد الدفعات فقط؛ الدفعات الأكثر تكراراً تقلل الفوائد ومدة التمويل.',
+  secBuyer: 'دفتر المشتري', secSeller: 'دفتر البائع', thPeriod: 'الرقم', thDate: 'التاريخ', thDays: 'الأيام',
+  thOpening: 'الأصل الافتتاحي', thPrincipal: 'الأصل', thInterest: 'الفوائد', thPayment: 'القسط', thClosing: 'الأصل الختامي',
+  thBuyerPay: 'دفعة المشتري', thLoanOpen: 'رصيد القرض', thLoanPrin: 'أصل القرض', thLoanInt: 'فوائد القرض',
+  thLoanSvc: 'خدمة الدين', thNet: 'التدفق الصافي للبائع', buyerMeta: 'مؤجل {d} · لكل قسط {p}',
+  sellerMeta: 'ممول {f} · السعر {r}', totalRow: 'الإجمالي', liveBtn: 'تحديث سعر الصرف', liveOk: 'مباشر',
+  liveRef: 'مرجع رسمي', liveFail: 'فشل الاستعلام', liveIdle: 'قيمة افتراضية قابلة للتعديل',
+  freeOn: 'بدون فوائد: لا يدفع المشتري فوائد', freeOff: 'بفوائد: تُحصل بالسعر أدناه', secNotes: 'ملاحظات المنهجية',
+  note1: 'دفتر المشتري: الدفعة المقدمة عند البدء، ثم سداد الأصل بأقساط متساوية بعد فترة السماح؛ الفوائد على الأيام الفعلية / الأساس.',
+  note2: 'دفتر البائع: يحصل على الدفعة المقدمة والتمويل عند البدء؛ تُستخدم مدفوعات المشتري لخدمة القرض؛ الفرق هو التدفق الصافي.',
+  note3: 'التكلفة الصافية للبائع = (فوائد القرض − الفوائد المحصلة) ÷ التمويل ÷ المدة المتوسطة؛ التمويل الزائد لا يغير التعريف.',
+  note4: 'سعر التمويل يعتمد على LPR لخمس سنوات، قابل للتحديث أو التعديل؛ التمويل بحد أقصى 90 %.',
+  note5: 'المبالغ مقربة؛ التواريخ تُحسب من تاريخ البدء مع محاذاة نهاية الشهر.',
+  footer: 'ائتمان المورد · نموذج الدفترين', alertGrace: 'يجب أن تكون فترة السماح أقصر من مدة السداد',
+  alertFin: 'تمويل البائع بحد أقصى 90 %', curHint: 'تغيير العملة يغير الرمز فقط دون تحويل',
+  netGain: 'ربح صافٍ', kSellerNote: 'التكلفة الصافية ÷ التمويل ÷ المدة المتوسطة',
+  kFinIntNote: 'فوائد على رصيد القرض كل فترة', kBuyerIRRNote: 'معدل العائد الداخلي لمدفوعات المشتري',
+  secBuyerTerms: 'شروط دفع المشتري', secSellerFin: 'تمويل البائع'
+}
+};
+
+
+var FXK = {
+  zh: { curHint: '切换币种按实时汇率折算合同金额，可手动锁定', fxManual: '手动', fxReset: '恢复实时', fxEditHint: '点击数字可手动锁定汇率，用于报价或锁汇。', fxEquiv: '合同金额折合', fxLive: '实时汇率', fxIdle: '汇率未更新', fxFail: '实时汇率获取失败，可手动填写', fxRate: '汇率', fxNeed: '请先在 FX 面板填写汇率', fxRefresh: '刷新', fxSrc: '汇率源',  swapLiveBtn: '刷新{t}掉期点', swapLiveBusy: '刷新中…', swapLiveOk: '已更新', swapLiveFail: '获取失败，保留当前值（可手动修改）', swapSrcLive: '在线', swapSrcDefault: '默认值', swapSrcManual: '手动', swapLiveSnap: '最新公布值' },
+  en: { curHint: 'Currency switch converts the contract amount at live FX; rates can be locked manually', fxManual: 'Manual', fxReset: 'Restore live', fxEditHint: 'Click a rate to lock it manually, for quoting or hedging.', fxEquiv: 'Contract equivalent', fxLive: 'Live FX', fxIdle: 'FX not updated', fxFail: 'Live FX failed — enter rates manually', fxRate: 'FX rate', fxNeed: 'Enter FX rates in the FX panel first', fxRefresh: 'Refresh', fxSrc: 'Source',  swapLiveBtn: 'Refresh {t} swap pips', swapLiveBusy: 'Refreshing…', swapLiveOk: 'Updated', swapLiveFail: 'Fetch failed; value kept (editable)', swapSrcLive: 'live', swapSrcDefault: 'default', swapSrcManual: 'manual', swapLiveSnap: 'latest published' },
+  fr: { curHint: 'Le changement de devise convertit le montant au taux du marché ; taux verrouillables', fxManual: 'Manuel', fxReset: 'Rétablir live', fxEditHint: 'Cliquez sur un taux pour le verrouiller (couverture ou cotation).', fxEquiv: 'Contrat équivalent', fxLive: 'Taux du marché', fxIdle: 'Taux non actualisé', fxFail: 'Taux indisponible — saisir manuellement', fxRate: 'Taux de change', fxNeed: 'Saisissez d’abord les taux dans le panneau FX', fxRefresh: 'Actualiser', fxSrc: 'Source',  swapLiveBtn: 'Actualiser les points {t}', swapLiveBusy: 'Actualisation…', swapLiveOk: 'Mis à jour', swapLiveFail: 'Échec ; valeur conservée (modifiable)', swapSrcLive: 'en ligne', swapSrcDefault: 'valeur par défaut', swapSrcManual: 'manuel', swapLiveSnap: 'dernière valeur publiée' },
+  pt: { curHint: 'A mudança de moeda converte o valor do contrato à taxa de mercado; taxas podem ser fixadas', fxManual: 'Manual', fxReset: 'Repor taxa live', fxEditHint: 'Clique num valor para fixar a taxa (cobertura ou cotação).', fxEquiv: 'Equivalente do contrato', fxLive: 'Taxa de mercado', fxIdle: 'Taxa não atualizada', fxFail: 'Taxa indisponível — introduza manualmente', fxRate: 'Taxa de câmbio', fxNeed: 'Introduza primeiro as taxas no painel FX', fxRefresh: 'Atualizar', fxSrc: 'Fonte',  swapLiveBtn: 'Atualizar pontos {t}', swapLiveBusy: 'A atualizar…', swapLiveOk: 'Atualizado', swapLiveFail: 'Falha ao obter; valor mantido (editável)', swapSrcLive: 'em linha', swapSrcDefault: 'predefinido', swapSrcManual: 'manual' },
+  es: { curHint: 'El cambio de moneda convierte el importe al tipo de mercado; tipos pueden fijarse', fxManual: 'Manual', fxReset: 'Restaurar live', fxEditHint: 'Haz clic en un tipo para fijarlo (cobertura o cotización).', fxEquiv: 'Equivalente del contrato', fxLive: 'Tipo de mercado', fxIdle: 'Tipo no actualizado', fxFail: 'Tipo no disponible — introduce manualmente', fxRate: 'Tipo de cambio', fxNeed: 'Introduce primero los tipos en el panel FX', fxRefresh: 'Actualizar', fxSrc: 'Fuente',  swapLiveBtn: 'Actualizar puntos {t}', swapLiveBusy: 'Actualizando…', swapLiveOk: 'Actualizado', swapLiveFail: 'Error; valor mantenido (editable)', swapSrcLive: 'en vivo', swapSrcDefault: 'predeterminado', swapSrcManual: 'manual' },
+  ar: { curHint: 'يُحوَّل مبلغ العقد بسعر الصرف الفوري عند تغيير العملة، ويمكن تثبيت الأسعار يدوياً', fxManual: 'يدوي', fxReset: 'استعادة الفوري', fxEditHint: 'انقر على السعر لتثبيته يدوياً للعرض أو التحوط.', fxEquiv: 'مبلغ العقد المكافئ', fxLive: 'سعر الصرف الفوري', fxIdle: 'لم يتم تحديث السعر', fxFail: 'تعذر جلب السعر — أدخل القيم يدوياً', fxRate: 'سعر الصرف', fxNeed: 'أدخل أسعار الصرف في لوحة FX أولاً', fxRefresh: 'تحديث', fxSrc: 'المصدر',  swapLiveBtn: 'تحديث نقاط المبادلة {t}', swapLiveBusy: 'جارٍ التحديث…', swapLiveOk: 'تم التحديث', swapLiveFail: 'فشل الجلب؛ تم الاحتفاظ بالقيمة', swapSrcLive: 'مباشر', swapSrcDefault: 'القيمة الافتراضية', swapSrcManual: 'يدوي', swapLiveSnap: 'أحدث قيمة منشورة' }
+};
+
+var FXK2 = {
+  zh: { secCost: '币种资金成本', fEquityCost: '自有资金机会成本（%）', fSwapPts: '人民币掉期点（pips）', fSwapTenor: '掉期期限', thEquity: '自有资金成本', thSwap: '掉期成本', kFinAmt: '银行融资额', kFinInt: '人民币融资利息', kNetCost: '自有资金成本', kSellerCost: '卖方全口径成本', kSellerNote: '银行利息＋自有资金成本＋掉期，÷延期本金÷加权年限', kBuyerIRR: '卖方期初现金流入', kBuyerIRRNote: '预付款＋银行提款，折人民币', kFinIntNote: '按人民币融资余额逐期计息', fRate: '延期付款利率（卖方收取）', fFinRate: '银行项目融资利率', cmpBuyer: '银行融资利率', cmpSeller: '自有资金机会成本', cmpNet: '卖方全口径成本', cmpNote: '银行融资利率＋自有资金机会成本＝卖方资金加权成本；全口径成本另加人民币掉期。', note3: '卖方全口径成本＝（银行融资利息＋自有资金机会成本＋人民币掉期成本）÷延期本金÷加权年限；延期本金中90%为银行项目融资，10%占用卖方自有资金。', note4: '掉期点默认取中国货币网 3 年期 USD/CNY 掉期点（-6,020 pips，2026-11-20），换算年化＝-掉期点×0.0001÷即期÷(期限/12)；自有资金机会成本可按公司 ROIC 或 ROE 填写。', note6: '人民币升值敞口：未锁汇的延期本金按即期折人民币，人民币每升值 1%，卖方少收约 1% 的等值人民币；掉期成本即为锁定该敞口的代价。' },
+  en: { secCost: 'Currency funding cost', fEquityCost: 'Own-funds opportunity cost (%)', fSwapPts: 'CNY swap points (pips)', fSwapTenor: 'Swap tenor', thEquity: 'Own-funds cost', thSwap: 'FX swap cost', kFinAmt: 'Bank facility', kFinInt: 'CNY funding interest', kNetCost: 'Own-funds cost', kSellerCost: 'Seller all-in cost', kSellerNote: 'bank + own funds + swap ÷ deferred ÷ weighted life', kBuyerIRR: 'Seller initial cash inflow', kBuyerIRRNote: 'down payment + bank drawdown, in CNY', kFinIntNote: 'interest on CNY loan balance', fRate: 'Deferred payment rate (charged by seller)', fFinRate: 'Bank project financing rate', cmpBuyer: 'Bank financing rate', cmpSeller: 'Own-funds cost', cmpNet: 'Seller all-in cost', cmpNote: 'Bank rate + own-funds opportunity cost = seller weighted funding cost; all-in adds the CNY swap.', note3: 'Seller all-in cost = (bank interest + own-funds opportunity cost + CNY swap) ÷ deferred principal ÷ weighted life; 90% of deferred is bank project financing, 10% is the seller’s own funds.', note4: 'Defaults to ChinaMoney 3Y USD/CNY swap points (-6,020 pips, 20 Nov 2026); annualised = -points × 0.0001 ÷ spot ÷ (tenor/12). Own-funds cost can follow company ROIC or ROE.', note6: 'CNY appreciation exposure: unhedged deferred principal at spot loses about 1% in CNY terms per 1% CNY appreciation; the swap cost is the price of locking that exposure.' },
+  fr: { secCost: 'Coût de financement par devise', fEquityCost: 'Coût d’opportunité des fonds propres (%)', fSwapPts: 'Points de swap CNY (pips)', fSwapTenor: 'Durée du swap', thEquity: 'Coût fonds propres', thSwap: 'Coût du swap', kFinAmt: 'Financement bancaire', kFinInt: 'Intérêts financement CNY', kNetCost: 'Coût des fonds propres', kSellerCost: 'Coût global vendeur', kSellerNote: 'banque + fonds propres + swap ÷ différé ÷ durée moyenne', kBuyerIRR: 'Encaissement initial vendeur', kBuyerIRRNote: 'acompte + tirage bancaire, en CNY', kFinIntNote: 'intérêts sur solde CNY', fRate: 'Taux de paiement différé (facturé par le vendeur)', fFinRate: 'Taux du financement bancaire', cmpBuyer: 'Taux bancaire', cmpSeller: 'Coût des fonds propres', cmpNet: 'Coût global vendeur', cmpNote: 'Taux bancaire + coût des fonds propres = coût moyen pondéré du vendeur ; le coût global y ajoute le swap CNY.', note3: 'Coût global vendeur = (intérêts bancaires + coût des fonds propres + swap CNY) ÷ principal différé ÷ durée moyenne ; 90 % du différé est financé par la banque, 10 % par les fonds propres du vendeur.', note4: 'Points de swap USD/CNY 3 ans par défaut (-6 020 pips, 20 nov. 2026) ; annualisation = -points × 0,0001 ÷ spot ÷ (durée/12) ; coût des fonds propres selon ROIC ou ROE.', note6: 'Exposition à l’appréciation du CNY : 1 % d’appréciation réduit d’environ 1 % l’équivalent CNY du principal non couvert ; le swap est le prix de la couverture.' },
+  pt: { secCost: 'Custo de financiamento por moeda', fEquityCost: 'Custo de oportunidade dos capitais próprios (%)', fSwapPts: 'Pontos de swap CNY (pips)', fSwapTenor: 'Prazo do swap', thEquity: 'Custo capital próprio', thSwap: 'Custo do swap', kFinAmt: 'Financiamento bancário', kFinInt: 'Juros do financiamento CNY', kNetCost: 'Custo dos capitais próprios', kSellerCost: 'Custo total do vendedor', kSellerNote: 'financiamento + swap, em CNY', kBuyerIRR: 'Entrada inicial do vendedor', kBuyerIRRNote: 'entrada + desembolso bancário, em CNY', kFinIntNote: 'juros sobre saldo em CNY', fRate: 'Taxa de pagamento diferido (cobrada pelo vendedor)', fFinRate: 'Taxa de financiamento bancário', cmpBuyer: 'Taxa bancária', cmpSeller: 'Custo dos capitais próprios', cmpNet: 'Custo total vendedor', cmpNote: 'Custo de oportunidade = TIR de financiamento em moeda ao benchmark + spread; custo total = (juros CNY + swap) ÷ financiamento CNY ÷ prazo médio.', note3: 'Custo de oportunidade = TIR se o comprador se financiar na moeda ao benchmark + spread; custo total = (juros CNY + swap CNY ) ÷ financiamento CNY ÷ prazo médio.', note4: 'Pontos de swap USD/CNY 1 ano, anualização = pontos × 0,0001 ÷ spot ÷ (prazo/12); o custo dos capitais próprios pode seguir o ROIC ou o ROE.', note6: 'Exposição à apreciação do CNY: 1 % de apreciação reduz cerca de 1 % o equivalente em CNY do principal não coberto; o swap é o custo da cobertura.' },
+  es: { secCost: 'Coste de financiación por divisa', fEquityCost: 'Coste de oportunidad de fondos propios (%)', fSwapPts: 'Puntos de swap CNY (pips)', fSwapTenor: 'Plazo del swap', thEquity: 'Coste fondos propios', thSwap: 'Coste del swap', kFinAmt: 'Financiación bancaria', kFinInt: 'Intereses de financiación CNY', kNetCost: 'Coste de fondos propios', kSellerCost: 'Coste total del vendedor', kSellerNote: 'financiación + swap, en CNY', kBuyerIRR: 'Entrada inicial del vendedor', kBuyerIRRNote: 'entrada + disposición bancaria, en CNY', kFinIntNote: 'intereses sobre saldo en CNY', fRate: 'Tipo de pago diferido (cobrado por el vendedor)', fFinRate: 'Tipo de financiación bancaria', cmpBuyer: 'Tipo bancario', cmpSeller: 'Coste de fondos propios', cmpNet: 'Coste total vendedor', cmpNote: 'Coste de oportunidad = TIR de financiación en divisa al benchmark + diferencial; coste total = (intereses CNY + swap) ÷ financiación CNY ÷ plazo medio.', note3: 'Coste de oportunidad = TIR si el comprador se financia en divisa al benchmark + diferencial; coste total = (intereses CNY + swap CNY ) ÷ financiación CNY ÷ plazo medio.', note4: 'Puntos swap USD/CNY 1 año, anualización = puntos × 0,0001 ÷ spot ÷ (plazo/12); el coste de fondos propios puede seguir el ROIC o el ROE.', note6: 'Exposición a la apreciación del CNY: 1 % reduce ~1 % el equivalente en CNY del principal no cubierto; el swap es el coste de la cobertura.' },
+  ar: { secCost: 'تكلفة التمويل بالعملة', fEquityCost: 'تكلفة فرصة الأموال الذاتية (%)', fSwapPts: 'نقاط مبادلة اليوان (نقاط)', fSwapTenor: 'مدة المبادلة', thEquity: 'تكلفة الأموال الذاتية', thSwap: 'تكلفة المبادلة', kFinAmt: 'تمويل بنكي', kFinInt: 'فوائد التمويل باليوان', kNetCost: 'تكلفة الأموال الذاتية', kSellerCost: 'التكلفة الإجمالية للبائع', kSellerNote: 'الفوائد + المبادلة باليوان', kBuyerIRR: 'التدفق النقدي الأولي للبائع', kBuyerIRRNote: 'الدفعة المقدمة + السحب البنكي باليوان', kFinIntNote: 'فوائد على رصيد اليوان', fRate: 'سعر الدفع المؤجل (يحصله البائع)', fFinRate: 'سعر التمويل البنكي', cmpBuyer: 'سعر التمويل البنكي', cmpSeller: 'تكلفة الأموال الذاتية', cmpNet: 'التكلفة الإجمالية', cmpNote: 'تكلفة الفرصة = معدل العائد عند الاقتراض بالعملة الأجنبية بالأساس + الهامش؛ التكلفة الإجمالية = (فوائد اليوان + المبادلة − فوائد المشتري) ÷ تمويل اليوان ÷ المدة المتوسطة.', note3: 'تكلفة الفرصة = معدل العائد إذا اقترض المشتري بالعملة بالأساس + الهامش؛ التكلفة الإجمالية = (فوائد اليوان + تكلفة المبادلة ) ÷ تمويل اليوان ÷ المدة المتوسطة.', note4: 'نقاط مبادلة USD/CNY لسنة، التسنين = النقاط × 0.0001 ÷ السعر الفوري ÷ (المدة/12)؛ يمكن أن تتبع تكلفة الأموال الذاتية ROIC أو ROE.', note6: 'التعرض لارتفاع اليوان: كل 1% ارتفاع يقلل نحو 1% من المكافئ باليوان للأصل غير المحوط؛ وتكلفة المبادلة هي ثمن التحوط.' },
+};
+var FXK3 = {
+  zh: { thBuyerPay: '买方回款（CNY）', thLoanOpen: '人民币融资余额', thLoanInt: '人民币利息', thLoanPrin: '人民币还本', thNet: '人民币净现金流', sensFinInt: '人民币融资利息', sensNet: '掉期成本', sensSeller: '全口径成本', sellerMeta: '人民币融资 {f} · 利率 {r}', liveBtn: '刷新实时汇率' },
+  en: { thBuyerPay: 'Buyer payment (CNY)', thLoanOpen: 'CNY loan balance', thLoanInt: 'CNY interest', thLoanPrin: 'CNY principal', thNet: 'Net cash flow (CNY)', sensFinInt: 'CNY funding interest', sensNet: 'Swap cost', sensSeller: 'All-in cost', sellerMeta: 'CNY facility {f} · rate {r}', liveBtn: 'Refresh live FX' },
+  fr: { thBuyerPay: 'Encaissement acheteur (CNY)', thLoanOpen: 'Solde du prêt CNY', thLoanInt: 'Intérêts CNY', thLoanPrin: 'Principal CNY', thNet: 'Flux net (CNY)', sensFinInt: 'Intérêts financement CNY', sensNet: 'Coût du swap', sensSeller: 'Coût global', sellerMeta: 'Financement CNY {f} · taux {r}', liveBtn: 'Actualiser le change' },
+  pt: { thBuyerPay: 'Recebimento do comprador (CNY)', thLoanOpen: 'Saldo do empréstimo CNY', thLoanInt: 'Juros CNY', thLoanPrin: 'Principal CNY', thNet: 'Fluxo líquido (CNY)', sensFinInt: 'Juros de financiamento CNY', sensNet: 'Custo do swap', sensSeller: 'Custo total', sellerMeta: 'Financiamento CNY {f} · taxa {r}', liveBtn: 'Atualizar câmbio' },
+  es: { thBuyerPay: 'Cobro del comprador (CNY)', thLoanOpen: 'Saldo del préstamo CNY', thLoanInt: 'Intereses CNY', thLoanPrin: 'Principal CNY', thNet: 'Flujo neto (CNY)', sensFinInt: 'Intereses de financiación CNY', sensNet: 'Coste del swap', sensSeller: 'Coste total', sellerMeta: 'Financiación CNY {f} · tipo {r}', liveBtn: 'Actualizar cambio' },
+  ar: { thBuyerPay: 'دفعة المشتري (يوان)', thLoanOpen: 'رصيد قرض اليوان', thLoanInt: 'فوائد اليوان', thLoanPrin: 'أصل اليوان', thNet: 'التدفق الصافي (يوان)', sensFinInt: 'فوائد تمويل اليوان', sensNet: 'تكلفة المبادلة', sensSeller: 'التكلفة الإجمالية', sellerMeta: 'تمويل باليوان {f} · سعر {r}', liveBtn: 'تحديث سعر الصرف' },
+};
+var RU = {
+ "appTitle": "Кредит поставщика при поддержке ECA",
+ "appSub": "Отсрочка платежа экспортёра · книги покупателя и поставщика",
+ "export": "Экспорт в Excel",
+ "print": "Печать",
+ "reset": "Сброс",
+ "swapLiveBtn": "Обновить пункты свопа {t}",
+ "swapLiveBusy": "Обновление…",
+ "swapLiveOk": "Обновлено",
+ "swapLiveFail": "Не удалось получить; значение сохранено",
+ "swapSrcLive": "онлайн",
+ "swapSrcDefault": "по умолчанию",
+ "swapSrcManual": "вручную",
+ "swapLiveSnap": "последнее опубликованное",
+ "secAssumptions": "Исходные данные",
+ "readme": "Настройте параметры слева; обе книги пересчитываются автоматически.",
+ "fPrice": "Сумма контракта",
+ "fStart": "Дата начала (отгрузка)",
+ "fDown": "Авансовый платёж",
+ "fTenor": "Срок погашения",
+ "fFreq": "Платежей в год",
+ "fGrace": "Льготный период",
+ "fFree": "Без процентов для покупателя",
+ "fRate": "Ставка покупателя (базовая + спред)",
+ "fBasis": "База расчёта дней",
+ "fFinRatio": "Доля финансирования поставщика",
+ "fFinRate": "Ставка финансирования в юанях (LPR + спред)",
+ "fCur": "Валюта",
+ "unitMons": "мес.",
+ "hintTenor": "≈ {y} лет · {n} платежей",
+ "derivedDeferred": "Отсроченный основной долг",
+ "derivedPer": "Основной долг за платёж",
+ "derivedPayments": "Количество платежей",
+ "derivedFin": "Финансирование поставщика",
+ "kBuyerTotal": "Общая сумма платежей покупателя",
+ "kBuyerInt": "В том числе проценты",
+ "kDeferred": "Отсроченный основной долг",
+ "kBuyerIRR": "Альтернативная стоимость покупателя (годовая)",
+ "kFinAmt": "Финансирование в юанях",
+ "kFinInt": "Проценты в юанях",
+ "kNetCost": "Стоимость свопа в юанях",
+ "kSellerCost": "Полная стоимость поставщика",
+ "secCompare": "Сравнение стоимости",
+ "cmpBuyer": "Альтернативная стоимость покупателя",
+ "cmpSeller": "Ставка в юанях",
+ "cmpNet": "Полная стоимость поставщика",
+ "cmpNote": "Альтернативная стоимость покупателя = IRR заимствования в валюте по базовой ставке + спред; полная стоимость = (проценты в юанях + своп) ÷ финансирование ÷ средневзвешенный срок.",
+ "secChart": "Денежные потоки",
+ "chBuyer": "Платежи покупателя",
+ "chSeller": "Чистый поток поставщика",
+ "secSens": "Чувствительность к частоте",
+ "sensFreq": "В год",
+ "sensBuyerInt": "Проценты покупателя",
+ "sensFinInt": "Проценты в юанях",
+ "sensNet": "Стоимость свопа",
+ "sensSeller": "Полная стоимость",
+ "sensNote": "Тот же контракт, меняется только частота; частые платежи снижают проценты и срок финансирования.",
+ "secBuyerTerms": "Условия платежа покупателя",
+ "secSellerFin": "Финансирование поставщика",
+ "secBuyer": "Книга покупателя",
+ "secSeller": "Книга поставщика",
+ "thPeriod": "№",
+ "thDate": "Дата",
+ "thDays": "Дней",
+ "thOpening": "Остаток на начало",
+ "thPrincipal": "Основной долг",
+ "thInterest": "Проценты",
+ "thPayment": "Платёж",
+ "thClosing": "Остаток на конец",
+ "thBuyerPay": "Платёж покупателя (юани)",
+ "thLoanOpen": "Остаток кредита в юанях",
+ "thLoanPrin": "Основной долг в юанях",
+ "thLoanInt": "Проценты в юанях",
+ "thLoanSvc": "Обслуживание долга",
+ "thNet": "Чистый поток (юани)",
+ "buyerMeta": "Отсрочка {d} · за платёж {p}",
+ "sellerMeta": "Финансирование {f} · ставка {r}",
+ "totalRow": "Итого",
+ "liveBtn": "Обновить базовую ставку",
+ "liveOk": "Онлайн",
+ "liveRef": "Официальный источник",
+ "liveFail": "Не удалось получить",
+ "liveIdle": "Значение по умолчанию, можно изменить",
+ "freeOn": "Без процентов: покупатель не платит",
+ "freeOff": "Проценты начисляются по ставке ниже",
+ "secNotes": "Пояснения к методике",
+ "note1": "Книга покупателя: аванс в начале, основной долг погашается равными долями после льготного периода; проценты по фактическим дням / базе.",
+ "note2": "Книга поставщика: аванс и выборка финансирования в начале; поступления покупателя обслуживают кредит; разница — чистый поток поставщика.",
+ "note3": "Альтернативная стоимость покупателя = IRR, если бы он заимствовал в валюте контракта по базовой ставке + спред; полная стоимость поставщика = (проценты в юанях + стоимость свопа) ÷ финансирование в юанях ÷ средневзвешенный срок.",
+ "note4": "Финансирование в юанях — LPR 5 лет с обновлением; укажите банковские 1-летние пункты свопа USD/CNY, годовая = пункты × 0,0001 ÷ спот ÷ (срок/12).",
+ "note5": "Суммы округлены до целых; даты считаются от даты начала с выравниванием по концу месяца.",
+ "footer": "Кредит поставщика · модель двух книг",
+ "alertGrace": "Льготный период должен быть меньше срока погашения",
+ "alertFin": "Финансирование поставщика ограничено 90 %",
+ "curHint": "Смена валюты пересчитывает сумму контракта по текущему курсу; курс можно зафиксировать вручную",
+ "netGain": "Чистый доход",
+ "kSellerNote": "банк + собственные средства + своп ÷ отсрочка ÷ средний срок",
+ "kFinIntNote": "проценты на остаток кредита в юанях",
+ "kBuyerIRRNote": "аванс + банковская выборка, в юанях",
+ "kBuyerIRR": "Первоначальный приток продавца",
+ "kNetCost": "Стоимость собственных средств",
+ "cmpBuyer": "Ставка банка",
+ "cmpSeller": "Стоимость собственных средств",
+ "fEquityCost": "Стоимость собственных средств (% годовых)",
+ "sensEquity": "Собственные средства",
+ "kFreeNote": "Нулевая стоимость для покупателя, расходы несёт поставщик",
+ "fxManual": "Вручную",
+ "fxReset": "Вернуть онлайн-курс",
+ "fxEditHint": "Нажмите на курс, чтобы зафиксировать его вручную для котировки или хеджирования.",
+ "fxEquiv": "Эквивалент контракта",
+ "fxLive": "Курс онлайн",
+ "fxIdle": "Курс не обновлён",
+ "fxFail": "Не удалось получить курс — введите вручную",
+ "fxRate": "Курс",
+ "fxNeed": "Сначала введите курсы в панели FX",
+ "fxRefresh": "Обновить",
+ "fxSrc": "Источник",
+ "fxContract": "Сумма контракта",
+ "secCost": "Стоимость финансирования продавца",
+ "fRate": "Ставка отсрочки (начисляет продавец)",
+ "fEquityCost": "Стоимость собственных средств (% годовых)",
+ "fSwapPts": "Пункты свопа CNY (пипсы)",
+ "fSwapTenor": "Срок свопа",
+ "thEquity": "Стоимость собственных средств",
+ "thSwap": "Стоимость свопа",
+ "note6": "Валютный риск юаня: нехеджированный отсроченный долг в пересчёте по споту теряет около 1 % в юанях на каждый 1 % укрепления юаня; стоимость свопа — цена фиксации этого риска."
+};
+function txt(key, lang) {
+  if (lang === 'ru' && RU[key] !== undefined) return RU[key];
+  if (FXK3[lang] && FXK3[lang][key] !== undefined) return FXK3[lang][key];
+  if (FXK2[lang] && FXK2[lang][key] !== undefined) return FXK2[lang][key];
+  if (FXK[lang] && FXK[lang][key] !== undefined) return FXK[lang][key];
+  if (LANG_IDX[lang] !== undefined) { var a = DICT[key]; return a ? a[LANG_IDX[lang]] : key; }
+  if (EXTRA[lang] && EXTRA[lang][key] !== undefined) return EXTRA[lang][key];
+  var b = DICT[key]; return b ? b[1] : key;
+}
+
+/* ---------------- dates & format ---------------- */
+function addM(iso, m) {
+  var d = toDate(iso), day = d.getUTCDate();
+  var first = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + m, 1));
+  var last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth(), Math.min(day, last)));
+}
+var DEF = { price: 80000000, start: '2026-11-30', downPct: 15, tenorMonths: 24, freq: 2, grace: 6, free: false, ratePct: 5.00, basis: 360, finRatio: 90, finRatePct: 3.50, equityCostPct: 8.00, premRate: 2.00, premBasis: 'PI', premRatioPct: 0, cover: true, swapPts: -6020, swapTenor: 36, cur: 'CNY' };
+var SWAPSRC = { pips: -6020, date: '2026-11-20', live: false, busy: false, mode: 'default',
+  url: 'https://www.chinamoney.com.cn/chinese/bkcurvuiruuh/',
+  api: 'https://www.chinamoney.com.cn/ags/ms/cm-u-bk-fx/IuirCurvHis?page=1&pageSize=15&ccyPair=USD.CNY' };
+
+var CUR = { USD: { sym: '$' }, EUR: { sym: '€' }, CNY: { sym: '¥' }, GBP: { sym: '£' } };
+
+function compute(inp) {
+  var P = inp.price, dp = inp.downPct / 100, M = inp.tenorMonths, n = inp.freq, g = inp.grace;
+  var r = inp.free ? 0 : inp.ratePct / 100, basis = inp.basis;
+  var f = inp.finRatio / 100, sLo = inp.finRatePct / 100, eRate = (inp.equityCostPct || 0) / 100;
+  var spot = inp.spot || 1, sw = (inp.swapPct || 0) / 100;
+  var pips = inp.swapPts || 0;
+  var nPay = Math.max(1, Math.round(M * n / 12));
+  var nG = Math.max(0, Math.min(nPay - 1, Math.floor(g * n / 12 + 1e-9)));
+  var deferred = P * (1 - dp);
+  var bPer = deferred / (nPay - nG);
+  var cover = inp.cover !== false;
+  var premRate = cover ? Math.max(0, inp.premRate || 0) / 100 : 0;
+  var premRatio = cover ? Math.max(0, Math.min(0.85, inp.premRatioPct || 0) / 100) : 0;
+
+  /* pass 1: buyer payment plan on deferred principal */
+  var segs = [], prev = toDate(inp.start), bBal = deferred, bi = 0, bp = 0;
+  for (var k = 1; k <= nPay; k++) {
+    var end = addM(inp.start, Math.round(k * M / nPay));
+    var days = daysBetween(prev, end);
+    var bOpen = bBal;
+    var bPrin = (k > nG) ? (k === nPay ? bBal : bPer) : 0;
+    if (k === nPay) bPrin = bBal;
+    var bInt = bOpen * r * days / basis;
+    var payment = bPrin + bInt;
+    bBal = bOpen - bPrin; if (Math.abs(bBal) < 1e-6) bBal = 0;
+    segs.push({ k: k, end: end, days: days, opening: bOpen, principal: bPrin, interest: bInt, payment: payment, closing: bBal, paid: k > nG });
+    bp += bPrin; bi += bInt; prev = end;
+  }
+
+  /* ECA premium: exporter bears it; base = deferred + buyer interest (P+I) or P */
+  var insured = deferred + bi;
+  var premium = premRate * (inp.premBasis === 'P' ? deferred : insured);
+  var premFinanced = premium * premRatio, premPrepay = premium - premFinanced;
+
+  var loan = f * deferred + premFinanced;
+  var equity = deferred - f * deferred;
+  var lPer = loan / (nPay - nG), ePer = equity / (nPay - nG);
+  var rows = [], lBal = loan, eBal = equity, li = 0, lp = 0, eqCost = 0, paySum = 0, swSum = 0, liCNY = 0, lpCNY = 0, eqCNY = 0;
+  segs.forEach(function (seg) {
+    var lOpen = lBal, eOpen = eBal;
+    var lPrin = seg.paid ? (seg.k === nPay ? lBal : lPer) : 0;
+    var ePrin = seg.paid ? (seg.k === nPay ? eBal : ePer) : 0;
+    if (seg.k === nPay) { lPrin = lBal; ePrin = eBal; }
+    var lInt = lOpen * sLo * seg.days / basis;
+    var eqInt = eOpen * eRate * seg.days / 365;
+    var service = lPrin + lInt;
+    lBal = lOpen - lPrin; eBal = eOpen - ePrin;
+    if (Math.abs(lBal) < 1e-6) lBal = 0;
+    if (Math.abs(eBal) < 1e-6) eBal = 0;
+    var cnyInt = lInt * spot, cnyPrin = lPrin * spot;
+    var cnySwap = seg.opening * spot * sw * seg.days / 365;
+    var cnyEq = eqInt * spot, cnyPay = seg.payment * spot;
+    rows.push({ period: seg.k, end: isoOf(seg.end), days: seg.days,
+      opening: seg.opening, principal: seg.principal, interest: seg.interest, payment: seg.payment, closing: seg.closing,
+      loanOpening: lOpen, loanPrincipal: lPrin, loanInterest: lInt, loanService: service,
+      equityOpening: eOpen, equityPrincipal: ePrin, equityCost: eqInt,
+      cnyLoanOpen: lOpen * spot, cnyInt: cnyInt, cnyPrin: cnyPrin, cnySwap: cnySwap, cnyEquity: cnyEq, cnyPay: cnyPay,
+      cnyNet: cnyPay - cnyPrin - cnyInt - cnySwap });
+    li += lInt; lp += lPrin; eqCost += eqInt; paySum += seg.payment; swSum += cnySwap;
+    liCNY += cnyInt; lpCNY += cnyPrin; eqCNY += cnyEq;
+  });
+
+  var down = P * dp;
+  var buyerTotal = down + paySum;
+  var buyerFlows = [{ date: inp.start, amount: deferred }];
+  rows.forEach(function (x) { buyerFlows.push({ date: x.end, amount: -x.payment }); });
+  var buyerIRR = xirr(buyerFlows);
+  var wal = 0;
+  rows.forEach(function (x) { wal += x.principal * daysBetween(toDate(inp.start), toDate(x.end)) / 365.25; });
+  wal = deferred > 0 ? wal / deferred : 0;
+  var loanCNY = loan * spot, deferredCNY = deferred * spot, equityCNY = equity * spot;
+  var premCNY = premium * spot, premPrepayCNY = premPrepay * spot;
+  var allInCNY = liCNY + eqCNY + swSum + premPrepayCNY;
+  var allInPct = (deferredCNY > 0 && wal > 0) ? allInCNY / deferredCNY / wal : 0;
+  var premBp = (deferred > 0 && wal > 0) ? (premium / deferred / wal) * 10000 : 0;
+  var swapFullCNY = pips && spot > 0 ? deferredCNY * Math.abs(pips) * 0.0001 / spot : 0;
+  return { inp: inp, rows: rows, periods: nPay, nGrace: nG, down: down, deferred: deferred, loan: loan, equity: equity,
+    sellerCashCNY: (down + loan) * spot - premPrepayCNY,
+    buyerTotal: buyerTotal, buyerInt: bi, buyerPrin: bp, paySum: paySum, buyerIRR: buyerIRR,
+    loanInt: li, loanPrin: lp, equityCost: eqCost, netCost: eqCost, netCostPct: allInPct,
+    insured: insured, premium: premium, premFinanced: premFinanced, premPrepay: premPrepay,
+    premRate: premRate, premRatio: premRatio, premCNY: premCNY, premBp: premBp,
+    wal: wal, walLoan: wal, rate: r, finRate: sLo, spot: spot, pips: pips,
+    loanCNY: loanCNY, deferredCNY: deferredCNY, equityCNY: equityCNY, intCNY: liCNY, eqCostCNY: eqCNY, swapCNY: swSum,
+    swapFullCNY: swapFullCNY, allInCNY: allInCNY, allInPct: allInPct, bpVsBuyer: (allInPct - buyerIRR) * 10000 };
+}
+
+/* ---------------- UI ---------------- */
+(function () {
+  var rawMode = document.documentElement.getAttribute('data-default-langs') || 'zh';
+  var rawLangs = rawMode.split('-').filter(function (l) { return ['zh', 'en', 'fr', 'pt', 'es', 'ar', 'ru'].indexOf(l) >= 0; });
+  if (!rawLangs.length) rawLangs = ['zh'];
+  var state = { langs: rawLangs, lang: rawLangs[0], cur: 'CNY', model: null, scale: 1 };
+  function $(s) { return document.querySelector(s); }
+  function $$(s) { return Array.prototype.slice.call(document.querySelectorAll(s)); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function num(v, dec) {
+    if (!isFinite(v)) return '—';
+    var fixed = (dec === 0 ? String(Math.round(v)) : v.toFixed(dec));
+    if (dec > 0) fixed = fixed.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
+    var neg = fixed.charAt(0) === '-'; if (neg) fixed = fixed.slice(1);
+    var p = fixed.split('.'); p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return (neg ? '-' : '') + p.join('.');
+  }
+  function fmtInput(v, dec) { return num(v, dec === undefined ? 0 : dec); }
+  function parseNum(s) { var n = parseFloat(String(s == null ? '' : s).replace(/[,\s\u00a0']/g, '')); return isFinite(n) ? n : 0; }
+  function t1(k) { return txt(k, state.lang); }
+  function lbl(k) {
+    return state.langs.map(function (l, i) { return '<span class="' + (i ? 'xl2' : '') + '">' + esc(txt(k, l)) + '</span>'; }).join('');
+  }
+  function sym() { return CUR[state.cur].sym; }
+  function moneyC(v) {
+    if (!isFinite(v)) return '—';
+    var sign = v < 0 ? '-' : '', a = Math.abs(v);
+    if (state.lang === 'zh') {
+      if (a >= 1e8) return sign + '¥' + num(a / 1e8, 2) + '亿';
+      if (a >= 1e4) return sign + '¥' + num(a / 1e4, 1) + '万';
+    } else {
+      if (a >= 1e6) return sign + '¥' + num(a / 1e6, 2) + 'M';
+      if (a >= 1e3) return sign + '¥' + num(a / 1e3, 1) + 'K';
+    }
+    return sign + '¥' + num(a, 0);
+  }
+  function money(v) {
+    if (!isFinite(v)) return '—';
+    var s = sym(), sign = v < 0 ? '-' : '', a = Math.abs(v);
+    if (state.lang === 'zh' && state.cur === 'CNY') {
+      if (a >= 1e8) return sign + s + num(a / 1e8, 2) + '亿';
+      if (a >= 1e4) return sign + s + num(a / 1e4, 1) + '万';
+    } else {
+      if (a >= 1e6) return sign + s + num(a / 1e6, 2) + 'M';
+      if (a >= 1e3) return sign + s + num(a / 1e3, 1) + 'K';
+    }
+    return sign + s + num(a, 0);
+  }
+  function full(v) { return sym() + num(v, 0); }
+  function pct(v, d) { return num(v * 100, d === undefined ? 2 : d) + '%'; }
+  function rate2(v) { return (v * 100).toFixed(2) + '%'; }
+  function fmtDate(iso) {
+    var d = toDate(iso); if (isNaN(d.getTime())) return '—';
+    if (state.lang === 'zh') return d.getUTCFullYear() + '年' + (d.getUTCMonth() + 1) + '月' + d.getUTCDate() + '日';
+    if (state.lang === 'fr') {
+      var mf = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+      return d.getUTCDate() + ' ' + mf[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+    }
+    if (state.lang === 'en') {
+      var me = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return d.getUTCDate() + ' ' + me[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+    }
+    var mm = String(d.getUTCMonth() + 1), dd = String(d.getUTCDate());
+    return (dd.length < 2 ? '0' + dd : dd) + (state.lang === 'ru' ? '.' : '/') + (mm.length < 2 ? '0' + mm : mm) + (state.lang === 'ru' ? '.' : '/') + d.getUTCFullYear();
+  }
+
+  /* flags */
+  function starPoly(cx, cy, R, r) { var pts = []; for (var i = 0; i < 10; i++) { var a = -Math.PI / 2 + i * Math.PI / 5, rad = (i % 2) ? r : R; pts.push((cx + rad * Math.cos(a)).toFixed(2) + ',' + (cy + rad * Math.sin(a)).toFixed(2)); } return '<polygon points="' + pts.join(' ') + '" fill="#ffde00"/>'; }
+  var FLAG = {
+    zh: '<svg class="flag" viewBox="0 0 60 30"><rect width="60" height="30" fill="#de2910"/>' + starPoly(11, 15, 9, 3.8) + '</svg>',
+    en: '<svg class="flag" viewBox="0 0 60 30"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="3"/><path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="5"/></svg>',
+    fr: '<svg class="flag" viewBox="0 0 60 30"><rect width="20" height="30" fill="#0055A4"/><rect x="20" width="20" height="30" fill="#fff"/><rect x="40" width="20" height="30" fill="#EF4135"/></svg>',
+    pt: '<svg class="flag" viewBox="0 0 60 30"><rect width="24" height="30" fill="#046A38"/><rect x="24" width="36" height="30" fill="#DA291C"/><circle cx="24" cy="15" r="7" fill="#FFCD00" stroke="#fff" stroke-width="1.5"/><circle cx="24" cy="15" r="3.6" fill="#DA291C"/></svg>',
+    es: '<svg class="flag" viewBox="0 0 60 30"><rect width="60" height="30" fill="#AA151B"/><rect y="7.5" width="60" height="15" fill="#F1BF00"/><rect x="12" y="10.5" width="8" height="9" fill="#AA151B" opacity=".7"/></svg>',
+    ar: '<svg class="flag" viewBox="0 0 60 30"><rect width="60" height="30" fill="#fff"/><rect width="60" height="10" fill="#00732F"/><rect y="10" width="60" height="10" fill="#fff"/><rect y="20" width="60" height="10" fill="#000"/><rect width="15" height="30" fill="#FF0000"/></svg>',
+    ru: '<svg class="flag" viewBox="0 0 60 30"><rect width="60" height="30" fill="#fff"/><rect y="10" width="60" height="10" fill="#0039A6"/><rect y="20" width="60" height="10" fill="#D52B1E"/></svg>'
+  };
+  var MODES = [
+    { key: 'zh', langs: ['zh'], name: '中文', short: '中文' },
+    { key: 'en', langs: ['en'], name: 'English', short: 'EN' },
+    { key: 'fr', langs: ['fr'], name: 'Français', short: 'FR' },
+    { key: 'pt', langs: ['pt'], name: 'Português', short: 'PT' },
+    { key: 'es', langs: ['es'], name: 'Español', short: 'ES' },
+    { key: 'ar', langs: ['ar'], name: 'العربية', short: 'AR' },
+    { key: 'ru', langs: ['ru'], name: 'Русский', short: 'RU' },
+    { key: 'zh-en', langs: ['zh', 'en'], name: '中文 + English', short: '中/EN' },
+    { key: 'zh-fr', langs: ['zh', 'fr'], name: '中文 + Français', short: '中/FR' },
+    { key: 'zh-pt', langs: ['zh', 'pt'], name: '中文 + Português', short: '中/PT' },
+    { key: 'zh-es', langs: ['zh', 'es'], name: '中文 + Español', short: '中/ES' },
+    { key: 'zh-ar', langs: ['zh', 'ar'], name: '中文 + العربية', short: '中/AR' },
+    { key: 'zh-ru', langs: ['zh', 'ru'], name: '中文 + Русский', short: '中/RU' }
+  ];
+
+  function applyI18n() {
+    $$('[data-i18n]').forEach(function (el) {
+      var k = el.getAttribute('data-i18n');
+      if (el.closest('.appbar') || el.classList.contains('sfx')) el.textContent = t1(k);
+      else if (el.classList.contains('meta') || el.classList.contains('hintline')) el.textContent = t1(k);
+      else el.innerHTML = lbl(k);
+    });
+    $('#sfxCur').textContent = state.cur;
+    $('#langFlags').innerHTML = state.langs.map(function (l) { return FLAG[l] || ''; }).join('');
+    var md = MODES.filter(function (m) { return m.key === state.langs.join('-'); })[0];
+    $('#langShort').textContent = md ? md.short : state.langs.join(' / ');
+    $$('#langMenu button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-mode') === state.langs.join('-')); });
+    document.documentElement.dir = (state.lang === 'ar') ? 'rtl' : 'ltr';
+    renderSwapLive(SWAPSRC.busy ? 'busy' : SWAPSRC.mode);
+    renderSwapBtn();
+    var cs = $('#curSel'); if (cs) cs.title = t1('curHint');
+    $('#fHintFree').textContent = $('#inFree').classList.contains('on') ? t1('freeOn') : t1('freeOff');
+    renderNotes();
+  }
+  function renderNotes() { $('#notesList').innerHTML = ['note1', 'note2', 'note3', 'note4', 'note5', 'note6'].map(function (k) { return '<li>' + lbl(k) + '</li>'; }).join(''); }
+
+  function readInputs() {
+    return {
+      price: Math.max(0, parseNum($('#inPrice').value)),
+      start: $('#inStart').value || DEF.start,
+      downPct: Math.min(100, Math.max(0, parseNum($('#inDown').value))),
+      tenorMonths: Math.max(1, Math.round(parseNum($('#inTenor').value))),
+      freq: parseInt($('#inFreq').value, 10) || 2,
+      grace: Math.max(0, Math.round(parseNum($('#inGrace').value))),
+      free: $('#inFree').classList.contains('on'),
+      ratePct: Math.max(0, parseNum($('#inRate').value)),
+      basis: parseInt($('#inBasis').value, 10) || 360,
+      finRatio: Math.min(90, Math.max(0, parseNum($('#inFinRatio').value))),
+      finRatePct: Math.max(0, parseNum($('#inFinRate').value)),
+      equityCostPct: Math.max(0, parseNum($('#inEquityCost').value)),
+      premRate: Math.max(0, parseNum($('#inPremRate').value)),
+      premBasis: $('#inPremBasis').value,
+      premRatioPct: Math.min(85, Math.max(0, parseNum($('#inPremFin').value))),
+      cover: true,
+      spot: (FX.rates['CNY'] && FX.rates[state.cur]) ? FX.rates['CNY'] / FX.rates[state.cur] : 1,
+      swapPts: parseNum($('#inSwapPts').value),
+      swapTenor: parseNum($('#inSwapTenor').value) || 12,
+      swapPct: (function () {
+        if (state.cur === 'CNY') return 0;
+        var spotv = (FX.rates['CNY'] && FX.rates[state.cur]) ? FX.rates['CNY'] / FX.rates[state.cur] : 1;
+        var pips = parseNum($('#inSwapPts').value), tenor = parseNum($('#inSwapTenor').value) || 12;
+        return spotv > 0 ? (-pips * 0.0001 / spotv) / (tenor / 12) * 100 : 0;
+      })(),
+      cur: state.cur
+    };
+  }
+
+  function setCurSymbol() { $('#sfxCur').textContent = state.cur; }
+
+  function renderEquityMix(m) {
+    var el = $('#hEquityMix'); if (!el) return;
+    var f = Math.min(90, parseNum($('#inFinRatio').value)) / 100, e = parseNum($('#inEquityCost').value), bk = parseNum($('#inFinRate').value);
+    var w = f * bk + (1 - f) * e;
+    var bankW = (state.lang === 'zh' ? '银行 ' : state.lang === 'fr' ? 'Banque ' : state.lang === 'ru' ? 'Банк ' : state.lang === 'ar' ? 'بنك ' : 'Bank ');
+    var ownW = (state.lang === 'zh' ? '自有 ' : state.lang === 'fr' ? 'fonds propres ' : state.lang === 'ru' ? 'собств. ' : state.lang === 'ar' ? 'ذاتي ' : 'own ');
+    var wW = (state.lang === 'zh' ? '加权 ' : state.lang === 'fr' ? 'moyenne ' : state.lang === 'ru' ? 'средневзв. ' : state.lang === 'ar' ? 'مرجح ' : 'weighted ');
+    el.textContent = bankW + num(f * 100, 0) + '% × ' + num(bk, 2) + '% + ' + ownW + num((1 - f) * 100, 0) + '% × ' + num(e, 2) + '% → ' + wW + num(w, 2) + '%';
+  }
+var SWAPFIX = {
+    '4Y': { pips: -7950, date: '2026-11-20' },
+    '5Y': { pips: -9750.5, date: '2026-11-20' }
+  };
+  function swapTenorLabel(months) {
+    var std = [{ m: 1, t: '1M' }, { m: 2, t: '2M' }, { m: 3, t: '3M' }, { m: 6, t: '6M' }, { m: 9, t: '9M' },
+      { m: 12, t: '1Y' }, { m: 18, t: '18M' }, { m: 24, t: '2Y' }, { m: 36, t: '3Y' }, { m: 48, t: '4Y' }, { m: 60, t: '5Y' }];
+    var best = std[0], d0 = Infinity;
+    std.forEach(function (x) { var d = Math.abs(x.m - months); if (d < d0) { d0 = d; best = x; } });
+    return best;
+  }
+  function renderSwapBtn() {
+    var b = $('#btnSwapLive'); if (!b) return;
+    var lab = swapTenorLabel(parseNum($('#inSwapTenor').value) || 36).t;
+    var span = b.querySelector('[data-i18n="swapLiveBtn"]');
+    if (span) span.textContent = t1('swapLiveBtn').replace('{t}', lab);
+  }
+
+function renderSwapLive(kind) {
+    var el = $('#swapLiveInfo'); if (!el) return;
+    SWAPSRC.mode = kind;
+    el.classList.remove('ok', 'err');
+    if (kind === 'busy') el.textContent = t1('swapLiveBusy');
+    else if (kind === 'ok') { el.classList.add('ok'); el.textContent = t1('swapLiveOk') + ' ' + SWAPSRC.date; }
+    else if (kind === 'fail') { el.classList.add('err'); el.textContent = t1('swapLiveFail'); }
+    else if (kind === 'snap') { el.classList.add('ok'); el.textContent = t1('swapLiveSnap') + ' ' + SWAPSRC.date; }
+    else if (kind === 'manual') el.textContent = t1('swapSrcManual');
+    else el.textContent = t1('swapSrcDefault');
+  }
+
+  function fetchSwap() {
+    if (SWAPSRC.busy) return;
+    var tenor = swapTenorLabel(parseNum($('#inSwapTenor').value) || 36);
+    SWAPSRC.busy = true; SWAPSRC.live = false; renderSwapLive('busy');
+    function apply(pips, date, kind) {
+      SWAPSRC.pips = pips; SWAPSRC.date = date;
+      var inp = $('#inSwapPts');
+      inp.value = String(pips);
+      SWAPSRC.live = (kind === 'ok');
+      inp.dispatchEvent(new Event('input', { bubbles: true }));
+      renderSwapLive(kind);
+    }
+    function fail() { SWAPSRC.busy = false; renderSwapLive('fail'); }
+    if (SWAPFIX[tenor.t]) {
+      var f = SWAPFIX[tenor.t];
+      apply(f.pips, f.date, 'snap');
+      SWAPSRC.busy = false;
+      return;
+    }
+    var pages = ['1Y', '18M', '2Y', '3Y', '1M', '2M', '3M', '6M', '9M'].indexOf(tenor.t) >= 0 ? ['1'] : ['1', '2', '3', '4', '5', '6'];
+    var jobs = pages.map(function (n) {
+      return fetch(SWAPSRC.api.replace('page=1', 'page=' + n), { cache: 'no-store' }).then(function (r) {
+        return r.ok ? r.json() : { records: [] };
+      }).catch(function () { return { records: [] }; });
+    });
+    Promise.all(jobs).then(function (list) {
+      var hit = null;
+      list.forEach(function (d) {
+        ((d && d.records) || []).forEach(function (r) {
+          if (!hit && r.tl === tenor.t && r.ccyPairSrcCn === 'USD.CNY' && r.rmbRateDesCn === 'Shibor' && r.spotrateDesCn === '即期询价报价均值') hit = r;
+        });
+      });
+      if (!hit) throw new Error('no record');
+      var pips = parseFloat(String(hit.bpSrcStr).replace(/,/g, ''));
+      if (!isFinite(pips)) throw new Error('bad pips');
+      apply(pips, hit.showDateCn, 'ok');
+      SWAPSRC.busy = false;
+    }).catch(fail);
+  }
+
+  function renderSwapHint(m) {
+    var el = $('#hSwapAnnual'); if (!el) return;
+    var inp = m ? m.inp : null;
+    if (!inp) { el.textContent = ''; return; }
+    if (state.cur === 'CNY') { el.textContent = (state.lang === 'zh' ? 'CNY 合同 · 无需掉期' : state.lang === 'fr' ? 'Contrat CNY · pas de swap' : state.lang === 'ar' ? 'عقد باليوان · لا مبادلة' : state.lang === 'pt' ? 'Contrato CNY · sem swap' : state.lang === 'es' ? 'Contrato CNY · sin swap' : state.lang === 'ru' ? 'Контракт CNY · без свопа' : 'CNY contract · no FX swap'); return; }
+    var tl = swapTenorLabel(inp.swapTenor || 36).t;
+    var mode = SWAPSRC.mode;
+    var st = mode === 'ok' ? 'swapSrcLive' : (mode === 'snap' ? 'swapLiveSnap' : (mode === 'manual' ? 'swapSrcManual' : 'swapSrcDefault'));
+    var src = 'ChinaMoney USD/CNY ' + tl + ' ' + num(inp.swapPts, 0) + ' pips · ' + SWAPSRC.date + ' · ' + t1(st);
+    var txt1 = src + ' → ' + rate2(inp.swapPct / 100) + ' ' + (state.lang === 'zh' ? '年化' : state.lang === 'fr' ? "p.a." : 'p.a.') + ' · spot ' + num(inp.spot, 4);
+    if (m) txt1 += ' · ' + moneyC(m.swapCNY) + ' · ' + (state.lang === 'zh' ? '升值1%≈' : state.lang === 'fr' ? 'CNY +1% ≈' : state.lang === 'ar' ? 'ارتفاع 1% ≈' : state.lang === 'pt' ? 'CNY +1% ≈' : state.lang === 'es' ? 'CNY +1% ≈' : state.lang === 'ru' ? 'CNY +1% ≈' : 'CNY +1% ≈') + moneyC(m.deferredCNY * 0.01);
+    el.textContent = txt1;
+  }
+
+  function renderKpis(m) {
+    var lang = state.lang;
+    $('#kBuyerTotal').textContent = money(m.buyerTotal);
+    $('#kBuyerTotalS').textContent = (lang === 'zh' ? '预付款 ' : lang === 'fr' ? 'Acompte ' : lang === 'ru' ? 'Аванс ' : 'Down ') + money(m.down);
+    $('#kBuyerInt').textContent = money(m.buyerInt);
+    $('#kBuyerIntS').textContent = pct(m.rate, 2) + ' · ' + m.periods + (lang === 'zh' ? ' 期' : lang === 'fr' ? ' éch.' : lang === 'ru' ? ' платежей' : ' pmts');
+    $('#kDeferred').textContent = money(m.deferred);
+    $('#kDeferredS').textContent = pct(m.deferred / (m.inp.price || 1), 1) + (lang === 'zh' ? ' 合同价' : lang === 'fr' ? ' du prix' : lang === 'ru' ? ' от цены' : ' of price');
+    $('#kBuyerIRR').textContent = moneyC(m.sellerCashCNY);
+    $('#kBuyerIRRS').textContent = t1('kBuyerIRRNote');
+    $('#kFinAmt').textContent = moneyC(m.loanCNY);
+    $('#kFinAmtS').textContent = pct(m.inp.finRatio / 100, 0) + (state.lang === 'zh' ? ' × 延期本金' : state.lang === 'fr' ? ' du principal différé' : state.lang === 'ru' ? ' от отсрочки' : ' of deferred');
+    $('#kFinInt').textContent = moneyC(m.intCNY);
+    $('#kFinIntS').textContent = num(m.inp.finRatePct, 2) + '% · ' + t1('kFinIntNote');
+    $('#kNetCost').textContent = moneyC(m.eqCostCNY);
+    $('#kNetCostS').textContent = pct(1 - m.inp.finRatio / 100, 0) + ' × ' + num(m.inp.equityCostPct, 2) + '%';
+    var py = (state.lang === 'zh' ? ' /年' : state.lang === 'fr' ? ' /an' : state.lang === 'ar' ? ' /سنوياً' : state.lang === 'pt' ? ' /ano' : state.lang === 'es' ? ' /año' : state.lang === 'ru' ? ' /год' : ' p.a.');
+    $('#kSellerCost').textContent = rate2(m.allInPct) + py;
+    $('#kSellerCostS').textContent = moneyC(m.allInCNY) + ' · ' + t1('kSellerNote');
+    $('#cmpBuyer').textContent = rate2(m.inp.finRatePct / 100);
+    $('#cmpSeller').textContent = rate2(m.inp.equityCostPct / 100);
+    $('#cmpNet').textContent = rate2(m.allInPct);
+    renderEquityMix(m);
+    renderPrem(m); renderFxLoss(m);
+  }
+
+  function renderPrem(m) {
+    var lang = state.lang;
+    $('#premAmt').textContent = money(m.premium);
+    $('#premBaseAmt').textContent = money(m.insured);
+    $('#premOfDeferred').textContent = pct(m.deferred > 0 ? m.premium / m.deferred : 0, 2);
+    $('#premBp').textContent = num(m.premBp, 0) + ' bp';
+    $('#premPrepay').textContent = money(m.premPrepay) + ' · ' + num(m.inp.premRate, 2) + '%';
+    $('#premFinanced').textContent = money(m.premFinanced) + ' (' + num(m.inp.premRatioPct, 0) + '%)';
+    $('#premBasisTxt').textContent = (m.inp.premBasis === 'P' ? t1('optP') : t1('optPI')) + ' · ' + (lang === 'zh' ? '出口商承担' : lang === 'fr' ? 'à la charge de l’exportateur' : 'borne by exporter');
+    $('#hPremFin').textContent = (state.lang === 'zh' ? '上限 85% · 0＝出口商全额自付' : 'max 85%; 0 = exporter pays all');
+    $('#premFinanced').textContent = money(m.premFinanced) + ' (' + num(m.inp.premRatioPct, 0) + '%)';
+  }
+
+  function renderFxLoss(m) {
+    var inp = m.inp, lang = state.lang;
+    var noSwap = state.cur === 'CNY';
+    $('#fxSwapAnn').textContent = noSwap ? '0.00%' : rate2(Math.abs(inp.swapPct) / 100);
+    $('#fxLossFull').textContent = noSwap ? '—' : moneyC(m.swapFullCNY);
+    $('#fxLossPct').textContent = noSwap ? '—' : pct(m.deferredCNY > 0 ? m.swapFullCNY / m.deferredCNY : 0, 2);
+    $('#fxLossActual').textContent = noSwap ? '—' : moneyC(m.swapCNY);
+    $('#fxFormula').textContent = noSwap ? t1('fxNoSwap') : num(inp.swapPts, 0) + ' pips × ' + num(inp.swapTenor, 0) + ' mo ÷ ' + num(inp.spot, 4);
+    $('#fxLossMeta').textContent = t1('fxLossMeta').replace('{t}', num(inp.swapTenor, 0));
+  }
+
+  function renderTables(m) {
+    var rows = m.rows;
+    $('#buyerHead').innerHTML = '<tr>' + ['thPeriod', 'thDate', 'thDays', 'thOpening', 'thPrincipal', 'thInterest', 'thPayment', 'thClosing'].map(function (k, i) {
+      return '<th' + (i < 2 ? ' class="l"' : '') + '>' + lbl(k) + '</th>';
+    }).join('') + '</tr>';
+    var html = rows.map(function (r) {
+      return '<tr' + (r.period === rows.length ? ' class="final"' : '') + '>' +
+        '<td class="l">' + r.period + '</td><td class="l">' + fmtDate(r.end) + '</td><td>' + r.days + '</td>' +
+        '<td>' + full(r.opening) + '</td><td>' + full(r.principal) + '</td><td>' + full(r.interest) + '</td>' +
+        '<td><b>' + full(r.payment) + '</b></td><td>' + full(r.closing) + '</td></tr>';
+    }).join('');
+    html += '<tr class="total"><td class="l" colspan="4">' + esc(t1('totalRow')) + '</td><td>' + full(m.buyerPrin) + '</td><td>' + full(m.buyerInt) + '</td><td>' + full(m.paySum) + '</td><td>—</td></tr>';
+    $('#buyerBody').innerHTML = html;
+
+    $('#sellerHead').innerHTML = '<tr>' + ['thPeriod', 'thDate', 'thBuyerPay', 'thLoanOpen', 'thLoanInt', 'thEquity', 'thSwap', 'thNet'].map(function (k, i) {
+      return '<th' + (i < 2 ? ' class="l"' : '') + '>' + lbl(k) + '</th>';
+    }).join('') + '</tr>';
+    var sh = rows.map(function (r, i) {
+      var cls = i === 0 ? ' grace' : '';
+      return '<tr' + cls + '><td class="l">' + r.period + '</td><td class="l">' + fmtDate(r.end) + '</td><td>' + full(r.cnyPay) + '</td>' +
+        '<td>' + full(r.cnyLoanOpen) + '</td><td>' + full(r.cnyInt) + '</td><td>' + full(r.cnyEquity) + '</td>' +
+        '<td>' + full(r.cnySwap) + '</td><td><b>' + full(r.cnyNet) + '</b></td></tr>';
+    }).join('');
+    sh += '<tr class="total"><td class="l" colspan="2">' + esc(t1('totalRow')) + '</td><td>' + full(m.paySum * m.spot) + '</td><td>—</td><td>' + full(m.intCNY) + '</td><td>' + full(m.eqCostCNY) + '</td><td>' + full(m.swapCNY) + '</td><td>' + full(m.allInCNY === undefined ? 0 : (m.paySum * m.spot - m.intCNY - m.loanCNY - m.swapCNY)) + '</td></tr>';
+    $('#sellerBody').innerHTML = sh;
+
+    $('#buyerMeta').textContent = t1('buyerMeta').replace('{d}', money(m.deferred)).replace('{p}', money((m.rows.filter(function (x) { return x.principal > 0; })[0] || { principal: 0 }).principal));
+    $('#sellerMeta').textContent = t1('sellerMeta').replace('{f}', moneyC(m.loanCNY)).replace('{r}', num(m.inp.finRatePct, 2) + '%') + ' · ' + t1('kNetCost') + ' ' + moneyC(m.eqCostCNY) + ' (' + num(m.inp.equityCostPct, 2) + '%)';
+  }
+
+  function renderChart(m) {
+    var el = $('#chart'); var w = Math.max(360, el.clientWidth || 520); var h = 190;
+    var padL = 56, padR = 10, top = 12, bot = 26;
+    var n = m.rows.length; var slot = (w - padL - padR) / Math.max(1, n);
+    var maxV = 0; m.rows.forEach(function (r) { maxV = Math.max(maxV, r.cnyPay, Math.abs(r.cnyNet)); });
+    var base = top + (h - top - bot) * 0.72;
+    var scale = (base - top) / (maxV || 1);
+    var bw = Math.max(1.5, Math.min(6, slot * 0.7 / 2));
+    var bars = '', ticks = '';
+    m.rows.forEach(function (r, i) {
+      var x = padL + i * slot + slot / 2;
+      var hb = Math.max(1, r.cnyPay * scale);
+      bars += '<rect x="' + (x - bw - 1).toFixed(1) + '" y="' + (base - hb).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hb.toFixed(1) + '" fill="#2c5f96" opacity="' + (r.period <= m.nGrace ? '.55' : '.85') + '"/>';
+      var v = r.cnyNet, hh = Math.abs(v) * scale; var y = v >= 0 ? base - hh : base;
+      bars += '<rect x="' + (x + 1).toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(1, hh).toFixed(1) + '" fill="' + (v >= 0 ? '#c8a24a' : '#c05b5b') + '" opacity=".8"/>';
+    });
+    for (var g = 0; g <= 3; g++) {
+      var yy = base - (base - top) * g / 3;
+      ticks += '<line x1="' + padL + '" x2="' + (w - padR) + '" y1="' + yy.toFixed(1) + '" y2="' + yy.toFixed(1) + '" stroke="#e6ecf3"' + (g ? ' stroke-dasharray="3 4"' : '') + '/>';
+      var tv = maxV * g / 3, tstr = tv >= 1e6 ? num(tv / 1e6, 2) + 'M' : (tv >= 1e3 ? num(tv / 1e3, 0) + 'K' : num(tv, 0));
+      ticks += '<text x="' + (padL - 6) + '" y="' + (yy + 3).toFixed(1) + '" font-size="8" fill="#98a6b7" text-anchor="end">' + tstr + '</text>';
+    }
+    var years = Math.max(1, Math.round(m.inp.tenorMonths / 12));
+    var axis = '<text x="' + (w - padR) + '" y="' + (h - 6) + '" font-size="9" fill="#8b99aa" text-anchor="end">' + years + (state.lang === 'zh' ? ' 年' : state.lang === 'fr' ? ' ans' : state.lang === 'ar' ? ' سنة' : state.lang === 'pt' ? ' anos' : state.lang === 'es' ? ' años' : state.lang === 'ru' ? ' лет' : ' yrs') + '</text>';
+    el.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '">' + ticks + bars +
+      '<line x1="' + padL + '" x2="' + (w - padR) + '" y1="' + base + '" y2="' + base + '" stroke="#cbd7e4"/>' + axis + '</svg>';
+  }
+
+  function renderSens() {
+    var base = readInputs(); var freqs = [1, 2, 3, 4, 6, 12]; var rows = [];
+    freqs.forEach(function (f) {
+      var m = compute(Object.assign({}, base, { freq: f }));
+      var cls = f === base.freq ? ' class="base"' : '';
+      rows.push('<tr' + cls + '><td>' + f + '</td><td>' + money(m.buyerInt) + '</td><td>' + moneyC(m.intCNY) + '</td><td>' + moneyC(m.eqCostCNY) + '</td><td>' + moneyC(m.swapCNY) + '</td><td>' + rate2(m.allInPct) + '</td></tr>');
+    });
+    $('#sensTable').innerHTML = '<thead><tr><th>' + lbl('sensFreq') + '</th><th>' + lbl('sensBuyerInt') + '</th><th>' + lbl('sensFinInt') + '</th><th>' + lbl('sensEquity') + '</th><th>' + lbl('sensNet') + '</th><th>' + lbl('sensSeller') + '</th></tr></thead><tbody>' + rows.join('') + '</tbody>';
+  }
+
+  function render() {
+    var inp = readInputs();
+    if (inp.grace >= inp.tenorMonths) { $('#alert').hidden = false; $('#alert').textContent = t1('alertGrace'); }
+    else if (inp.finRatio > 90) { $('#alert').hidden = false; $('#alert').textContent = t1('alertFin'); }
+    else $('#alert').hidden = true;
+    if (inp.finRatio > 90) inp.finRatio = 90;
+    var m = compute(inp); state.model = m;
+    $('#hTenor').textContent = t1('hintTenor').replace('{y}', num(inp.tenorMonths / 12, 1)).replace('{n}', m.periods);
+    $('#dDeferred').textContent = money(m.deferred);
+    $('#dPer').textContent = money((m.rows.filter(function (x) { return x.principal > 0; })[0] || { principal: 0 }).principal) + (m.nGrace > 0 ? ' · ' + (state.lang === 'zh' ? '宽限后' : state.lang === 'fr' ? 'après différé' : state.lang === 'ru' ? 'после льготного' : 'after grace') : '');
+    $('#dPay').textContent = m.periods + (inp.grace > 0 ? ' · ' + (state.lang === 'zh' ? '含宽限' : state.lang === 'ar' ? 'شامل السماح' : state.lang === 'pt' ? 'inclui carência' : state.lang === 'es' ? 'incluye carencia' : state.lang === 'ru' ? 'вкл. льготный' : 'incl. grace') : '');
+    $('#dFin').textContent = moneyC(m.loanCNY);
+    renderKpis(m); renderTables(m); renderChart(m); renderSens(); renderSwapHint(m); renderFx();
+  }
+
+  function renderLive() {
+    var el = $('#liveInfo'); if (!el) return;
+    if (FX.busy) { el.innerHTML = '<i class="dot manual"></i>' + (state.lang === 'zh' ? '正在获取汇率…' : 'Fetching FX…'); return; }
+    if (FX.ok) el.innerHTML = '<i class="dot live"></i>' + t1('liveOk') + ' · USD/CNY ' + num(FX.rates.CNY, 4) + ' · USD/EUR ' + num(FX.rates.EUR, 4) + (FX.date ? ' · ' + FX.date : '');
+    else if (FX.date) el.innerHTML = '<i class="dot fail"></i>' + t1('liveFail');
+    else el.innerHTML = '<i class="dot"></i>' + t1('liveIdle');
+  }
+  /* ------------------------ FX ------------------------ */
+  var FX = { rates: { USD: 1 }, live: {}, manual: {}, date: '', busy: false, ok: false };
+  function syncFx() {
+    var r = { USD: 1 };
+    ['EUR', 'CNY', 'GBP'].forEach(function (c) { r[c] = FX.manual[c] !== undefined ? FX.manual[c] : FX.live[c]; });
+    FX.rates = r;
+    FX.ok = isFinite(r.EUR) && isFinite(r.CNY) && isFinite(r.GBP);
+  }
+  function fxRateLabel() {
+    var c = state.cur === 'USD' ? 'EUR' : state.cur;
+    var v = FX.rates[c];
+    return 'FX \u00b7 ' + c + ' ' + (isFinite(v) ? num(v, 4) : '\u2014') + (FX.manual[c] !== undefined ? '*' : '');
+  }
+  function renderFx() {
+    var btn = $('#fxBtn'), menu = $('#fxMenu');
+    if (!btn || !menu) return;
+    $('#fxBtnTxt').textContent = fxRateLabel();
+    btn.classList.toggle('man', !FX.ok);
+    var manualOn = Object.keys(FX.manual).length > 0;
+    var rows = ['EUR', 'CNY', 'GBP'].map(function (c) {
+      var v = FX.rates[c];
+      return '<div class="fxrow"><span>USD \u2192 ' + c + (FX.manual[c] !== undefined ? ' <i class="fxtag">' + esc(t1('fxManual')) + '</i>' : '') + '</span>' +
+        '<input class="fxi" data-cur="' + c + '" type="text" inputmode="decimal" value="' + (isFinite(v) ? num(v, 4) : '') + '" placeholder="\u2014"></div>';
+    }).join('');
+    var eq = '', cur = state.cur;
+    if (cur !== 'USD' && FX.rates[cur]) {
+      var usd = parseNum($('#inPrice').value) / FX.rates[cur];
+      eq = '<div class="fxrow" style="border-top:1px solid #eef3f8;margin-top:4px;padding-top:6px"><span>' + esc(t1('fxEquiv')) + ' USD</span><b>$' + num(usd, 0) + '</b></div>';
+    }
+    menu.innerHTML = '<h4>' + 'USD \u00b7 ' + (manualOn ? esc(t1('fxManual')) + ' / ' + esc(t1('fxLive')) : (FX.ok ? esc(t1('fxLive')) : esc(t1('fxIdle'))) ) + '</h4>' + rows + eq +
+      (FX.ok || manualOn ? '' : '<div class="fxmsg">' + esc(t1('fxFail')) + '</div>') +
+      '<div class="fxfoot"><span>' + esc(FX.date ? fmtDate(FX.date) : '\u2014') + '</span>' +
+      '<button type="button" id="fxRefresh">\u27f3 ' + esc(t1('fxRefresh')) + '</button>' +
+      (manualOn ? '<button type="button" id="fxReset" class="fxrst">' + esc(t1('fxReset')) + '</button>' : '') + '</div>';
+    var hint = $('#fxEqHint');
+    if (hint) {
+      if (cur !== 'USD' && FX.rates[cur] && parseNum($('#inPrice').value) > 0) {
+        hint.textContent = '\u2248 $' + num(parseNum($('#inPrice').value) / FX.rates[cur], 0) + ' @ ' + num(FX.rates[cur], 4) + (FX.manual[cur] !== undefined ? ' *' : '');
+        hint.hidden = false;
+      } else { hint.hidden = true; }
+    }
+  }
+  function fetchFx() {
+    if (FX.busy || !window.fetch) return;
+    FX.busy = true;
+    $('#fxBtnTxt').textContent = 'FX \u00b7 \u2026';
+    fetch('https://open.er-api.com/v6/latest/USD', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (j) {
+        var rates = (j && j.rates) || {};
+        FX.live = { EUR: rates.EUR, CNY: rates.CNY, GBP: rates.GBP };
+        syncFx();
+        var dt = new Date(j.time_last_update_utc || '');
+        FX.date = isNaN(dt.getTime()) ? '' : dt.toISOString().slice(0, 10);
+        FX.busy = false;
+        renderFx(); renderLive(); render();
+      })
+      .catch(function () { FX.busy = false; syncFx(); renderFx(); renderLive(); });
+  }
+  function canConvert(a, b) { return !!FX.rates[a] && !!FX.rates[b]; }
+  function setCurrency(code, convert) {
+    var old = state.cur;
+    if (code === old) { render(); return; }
+    if (convert && parseNum($('#inPrice').value) > 0) {
+      if (canConvert(old, code)) {
+        var f = FX.rates[code] / FX.rates[old];
+        $('#inPrice').value = fmtInput(parseNum($('#inPrice').value) * f, 0);
+      } else {
+        $('#curSel').value = old;
+        $('#fxMenu').hidden = false;
+        $('#fxBtn').setAttribute('aria-expanded', 'true');
+        renderFx();
+        return;
+      }
+    }
+    state.cur = code;
+    $('#sfxCur').textContent = code;
+    $('#inSwapPts').disabled = (code === 'CNY');
+    $('#inSwapTenor').disabled = (code === 'CNY');
+    applyI18n(); render(); renderFx();
+  }
+
+  /* export */
+  function buildWorkbook(m) {
+    var loc = state.lang, cur = state.cur;
+    function L(k) { return txt(k, loc); }
+    var a = [];
+    a.push([{ v: L('appTitle'), s: ST.section }]);
+    a.push([]);
+    a.push([{ v: L('secAssumptions'), s: ST.section }]);
+    a.push([{ v: L('fPrice') + ' (' + cur + ')', s: ST.text }, { v: m.inp.price, s: ST.money }]);
+    a.push([{ v: L('fStart'), s: ST.text }, { v: excelSerial(m.inp.start), s: ST.date }]);
+    a.push([{ v: L('fDown'), s: ST.text }, { v: m.inp.downPct / 100, s: ST.pct }]);
+    a.push([{ v: L('fTenor'), s: ST.text }, { v: m.inp.tenorMonths, s: ST.int }]);
+    a.push([{ v: L('fFreq'), s: ST.text }, { v: m.inp.freq, s: ST.int }]);
+    a.push([{ v: L('fGrace'), s: ST.text }, { v: m.inp.grace, s: ST.int }]);
+    a.push([{ v: L('fFree') + ' / ' + L('fRate'), s: ST.text }, { v: m.inp.free ? 0 : m.inp.ratePct / 100, s: ST.pct4 }]);
+    a.push([{ v: L('fBasis'), s: ST.text }, { v: m.inp.basis, s: ST.int }]);
+    a.push([{ v: L('fFinRatio'), s: ST.text }, { v: m.inp.finRatio / 100, s: ST.pct4 }]);
+    a.push([{ v: L('fFinRate'), s: ST.text }, { v: m.inp.finRatePct / 100, s: ST.pct4 }]);
+    a.push([{ v: L('fEquityCost'), s: ST.text }, { v: m.inp.equityCostPct / 100, s: ST.pct4 }]);
+    a.push([{ v: L('fCur'), s: ST.text }, { v: cur, s: ST.text }]);
+    a.push([{ v: 'Spot CNY/' + cur, s: ST.text }, { v: m.spot, s: ST.money }]);
+    a.push([{ v: L('fSwapPts'), s: ST.text }, { v: m.inp.swapPts, s: ST.int }]);
+    a.push([{ v: L('fSwapTenor'), s: ST.text }, { v: m.inp.swapTenor, s: ST.int }]);
+    a.push([{ v: L('fSwapPts') + ' p.a.', s: ST.text }, { v: m.inp.swapPct / 100, s: ST.pct4 }]);
+    if (cur !== 'USD' && FX.rates[cur]) {
+      a.push([{ v: 'USD\u2192' + cur + ' ' + L('fxRate'), s: ST.text }, { v: FX.rates[cur], s: ST.pct4 }]);
+      a.push([{ v: L('fxContract') + ' (USD)', s: ST.text }, { v: m.inp.price / FX.rates[cur], s: ST.money }]);
+    }
+    a.push([]);
+    a.push([{ v: L('derivedDeferred'), s: ST.text }, { v: m.deferred, s: ST.money }]);
+    a.push([{ v: L('derivedPer'), s: ST.text }, { v: (m.rows.filter(function (x) { return x.principal > 0; })[0] || { principal: 0 }).principal, s: ST.money }]);
+    a.push([{ v: L('derivedPayments'), s: ST.text }, { v: m.periods, s: ST.int }]);
+    a.push([{ v: L('derivedFin'), s: ST.text }, { v: m.loan, s: ST.money }]);
+    a.push([{ v: L('fPremRate'), s: ST.text }, { v: m.inp.premRate / 100, s: ST.pct4 }]);
+    a.push([{ v: L('fPremBasis'), s: ST.text }, { v: (m.inp.premBasis === 'P' ? L('optP') : L('optPI')), s: ST.text }]);
+    a.push([{ v: L('premBaseAmt'), s: ST.text }, { v: m.insured, s: ST.money }]);
+    a.push([{ v: L('premAmt'), s: ST.text }, { v: m.premium, s: ST.money }]);
+    a.push([{ v: L('premPrepayRow'), s: ST.text }, { v: m.premPrepay, s: ST.money }]);
+    a.push([{ v: L('premFinRow'), s: ST.text }, { v: m.premFinanced, s: ST.money }]);
+    a.push([{ v: L('premBp'), s: ST.text }, { v: m.premBp, s: ST.money }]);
+    a.push([{ v: L('kNetCost') + ' (' + L('fEquityCost') + ')', s: ST.text }, { v: m.equity, s: ST.money }]);
+
+    var bh = [L('thPeriod'), L('thDate'), L('thDays'), L('thOpening'), L('thPrincipal'), L('thInterest'), L('thPayment'), L('thClosing')].map(function (x) { return { v: x, s: ST.head }; });
+    var b = [bh];
+    m.rows.forEach(function (r) {
+      b.push([{ v: r.period, s: ST.int }, { v: excelSerial(r.end), s: ST.date }, { v: r.days, s: ST.int },
+        { v: r.opening, s: ST.money }, { v: r.principal, s: ST.money }, { v: r.interest, s: ST.money }, { v: r.payment, s: ST.money }, { v: r.closing, s: ST.money }]);
+    });
+    b.push([{ v: L('totalRow'), s: ST.boldText }, '', '', '', { v: m.buyerPrin, s: ST.boldMoney }, { v: m.buyerInt, s: ST.boldMoney }, { v: m.paySum, s: ST.boldMoney }, '']);
+
+    var sh = [L('thPeriod'), L('thDate'), L('thBuyerPay'), L('thLoanOpen'), L('thLoanInt'), L('thEquity'), L('thSwap'), L('thNet')].map(function (x) { return { v: x, s: ST.head }; });
+    var srows = [sh];
+    m.rows.forEach(function (r) {
+      srows.push([{ v: r.period, s: ST.int }, { v: excelSerial(r.end), s: ST.date }, { v: r.cnyPay, s: ST.money },
+        { v: r.cnyLoanOpen, s: ST.money }, { v: r.cnyInt, s: ST.money }, { v: r.cnyEquity, s: ST.money }, { v: r.cnySwap, s: ST.money }, { v: r.cnyNet, s: ST.money }]);
+    });
+    srows.push([{ v: L('totalRow'), s: ST.boldText }, '', { v: m.paySum * m.spot, s: ST.boldMoney }, '', { v: m.intCNY, s: ST.boldMoney }, { v: m.eqCostCNY, s: ST.boldMoney }, { v: m.swapCNY, s: ST.boldMoney }, { v: m.paySum * m.spot - m.intCNY - m.loanCNY - m.swapCNY, s: ST.boldMoney }]);
+
+    var sum = [];
+    sum.push([{ v: L('appTitle'), s: ST.section }]);
+    sum.push([]);
+    [[L('kBuyerTotal'), m.buyerTotal, ST.money], [L('kBuyerInt'), m.buyerInt, ST.money], [L('kDeferred'), m.deferred, ST.money],
+    [L('kBuyerIRR'), m.sellerCashCNY, ST.money], [L('kFinAmt'), m.loanCNY, ST.money], [L('kFinInt'), m.intCNY, ST.money],
+    [L('kNetCost'), m.eqCostCNY, ST.money], [L('cmpBuyer'), m.inp.finRatePct / 100, ST.pct], [L('cmpSeller'), m.inp.equityCostPct / 100, ST.pct],
+    [L('kSellerCost'), m.allInPct, ST.pct], [L('kSellerCost') + ' (bp)', m.allInPct * 10000, ST.money],
+    [L('premAmt'), m.premium, ST.money], [L('premBp'), m.premBp, ST.money]].forEach(function (r) {
+      sum.push([{ v: r[0], s: ST.text }, { v: r[1], s: r[2] }]);
+    });
+
+    var sens = [[L('sensFreq'), L('sensBuyerInt'), L('sensFinInt'), L('sensEquity'), L('sensNet'), L('sensSeller')].map(function (x) { return { v: x, s: ST.head }; })];
+    [1, 2, 3, 4, 6, 12].forEach(function (f) {
+      var x = compute(Object.assign({}, m.inp, { freq: f }));
+      sens.push([{ v: f, s: ST.int }, { v: x.buyerInt, s: ST.money }, { v: x.intCNY, s: ST.money }, { v: x.eqCostCNY, s: ST.money }, { v: x.swapCNY, s: ST.money }, { v: x.allInPct, s: ST.pct }]);
+    });
+
+    var sheets = [
+      { name: 'Assumptions', xml: sheetXml(a, { widths: [38, 24], merges: ['A1:B1'], headerHeight: 22 }) },
+      { name: 'Buyer', xml: sheetXml(b, { widths: [8, 14, 8, 18, 16, 16, 18, 16], freeze: 1, headerHeight: 28, landscape: true, merges: ['A' + (b.length) + ':D' + (b.length)] }) },
+      { name: 'Seller', xml: sheetXml(srows, { widths: [8, 14, 18, 18, 16, 18, 18, 18, 18], freeze: 1, headerHeight: 28, landscape: true, merges: ['A' + (srows.length) + ':B' + (srows.length)] }) },
+      { name: 'Summary', xml: sheetXml(sum, { widths: [38, 24], merges: ['A1:B1'], headerHeight: 22 }) },
+      { name: 'Sensitivity', xml: sheetXml(sens, { widths: [14, 18, 18, 18, 18, 16], freeze: 1, headerHeight: 28 }) }
+    ];
+    var files = [];
+    files.push({ name: '[Content_Types].xml', data: strBytes('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+      '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+      sheets.map(function (s, i) { return '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'; }).join('') +
+      '</Types>') });
+    files.push({ name: '_rels/.rels', data: strBytes('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+      '</Relationships>') });
+    files.push({ name: 'xl/workbook.xml', data: strBytes('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+      '<sheets>' + sheets.map(function (s, i) { return '<sheet name="' + s.name + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>'; }).join('') + '</sheets>' +
+      '<calcPr calcId="171027" fullCalcOnLoad="1"/></workbook>') });
+    files.push({ name: 'xl/_rels/workbook.xml.rels', data: strBytes('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      sheets.map(function (s, i) { return '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>'; }).join('') +
+      '<Relationship Id="rId' + (sheets.length + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+      '</Relationships>') });
+    files.push({ name: 'xl/styles.xml', data: strBytes(STYLES_XML) });
+    sheets.forEach(function (s, i) { files.push({ name: 'xl/worksheets/sheet' + (i + 1) + '.xml', data: strBytes(s.xml) }); });
+    return zipStore(files);
+  }
+
+  function download(m) {
+    var bytes = buildWorkbook(m), blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    var a = document.createElement('a'), url = URL.createObjectURL(blob);
+    var d = new Date(); var stamp = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+    a.href = url; a.download = 'Supplier_Credit_' + stamp + '.xlsx'; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 60);
+  }
+
+  function reset() {
+    $('#inPrice').value = fmtInput(DEF.price, 0);
+    $('#inStart').value = DEF.start;
+    $('#inDown').value = DEF.downPct; $('#inTenor').value = DEF.tenorMonths; $('#inFreq').value = DEF.freq;
+    $('#inGrace').value = DEF.grace; $('#inRate').value = DEF.ratePct.toFixed(2); $('#inBasis').value = DEF.basis;
+    $('#inFinRatio').value = DEF.finRatio; $('#inFinRate').value = DEF.finRatePct.toFixed(2);
+    $('#inFree').classList.toggle('on', DEF.free); $('#inRate').disabled = DEF.free;
+    $('#inEquityCost').value = DEF.equityCostPct.toFixed(2); $('#inPremRate').value = DEF.premRate.toFixed(2); $('#inPremFin').value = DEF.premRatioPct; $('#inPremBasis').value = DEF.premBasis; $('#inSwapPts').value = DEF.swapPts; $('#inSwapTenor').value = DEF.swapTenor;
+    state.cur = DEF.cur; $('#curSel').value = DEF.cur; $('#sfxCur').textContent = DEF.cur;
+    renderEquityMix();
+    applyI18n(); render(); renderFx();
+  }
+
+  function setMode(mode) {
+    var m = MODES.filter(function (x) { return x.key === mode; })[0];
+    state.langs = m ? m.langs.slice() : ['zh'];
+    state.lang = state.langs[0];
+    applyI18n(); render();
+  }
+
+  function init() {
+    $('#inPrice').value = fmtInput(DEF.price, 0);
+    $('#inStart').value = DEF.start;
+    $('#inDown').value = DEF.downPct; $('#inTenor').value = DEF.tenorMonths; $('#inFreq').value = DEF.freq;
+    $('#inGrace').value = DEF.grace; $('#inRate').value = DEF.ratePct.toFixed(2); $('#inBasis').value = DEF.basis;
+    $('#inFinRatio').value = DEF.finRatio; $('#inFinRate').value = DEF.finRatePct.toFixed(2); $('#inEquityCost').value = DEF.equityCostPct.toFixed(2); $('#inPremRate').value = DEF.premRate.toFixed(2); $('#inPremFin').value = DEF.premRatioPct; $('#inPremBasis').value = DEF.premBasis; $('#inFree').classList.remove('on');
+    $('#curSel').value = DEF.cur; state.cur = DEF.cur;
+    $('#inEquityCost').value = DEF.equityCostPct.toFixed(2); $('#inPremRate').value = DEF.premRate.toFixed(2); $('#inPremFin').value = DEF.premRatioPct; $('#inPremBasis').value = DEF.premBasis;
+    $('#inSwapPts').value = DEF.swapPts;
+    $('#inSwapTenor').value = DEF.swapTenor;
+    $('#inSwapPts').disabled = ($('#curSel').value === 'CNY');
+    $('#inSwapTenor').disabled = ($('#curSel').value === 'CNY');
+    renderEquityMix();
+    var fo = []; for (var fi = 1; fi <= 12; fi++) fo.push('<option value="' + fi + '">' + fi + '</option>');
+    $('#inFreq').innerHTML = fo.join('');
+    $('#inFreq').value = DEF.freq;
+    $('#curSel').title = t1('curHint');
+
+    $('#langMenu').innerHTML = MODES.map(function (m) {
+      return '<button type="button" data-mode="' + m.key + '"' + (m.key === state.langs.join('-') ? ' class="on"' : '') + '>' +
+        '<span class="flags">' + m.langs.map(function (l) { return FLAG[l]; }).join('') + '</span><span class="lname">' + m.name + '</span></button>';
+    }).join('');
+
+    $('#langBtn').addEventListener('click', function (e) { e.stopPropagation(); $('#langMenu').hidden = !$('#langMenu').hidden; });
+    $('#langMenu').addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return; setMode(b.getAttribute('data-mode')); $('#langMenu').hidden = true;
+    });
+    document.addEventListener('click', function (e) { if (!e.target.closest('.langpick')) $('#langMenu').hidden = true; });
+
+    $('#inFree').addEventListener('click', function () {
+      this.classList.toggle('on');
+      var free = this.classList.contains('on');
+      $('#inRate').disabled = free;
+      var cs = $('#curSel'); if (cs) cs.title = t1('curHint');
+    $('#fHintFree').textContent = free ? t1('freeOn') : t1('freeOff');
+      render();
+    });
+
+    $('#inEquityCost').addEventListener('input', schedule);
+    $('#inFinRatio').addEventListener('input', function () { renderEquityMix(); });
+    $('#inSwapPts').addEventListener('input', function () { if (SWAPSRC.live && Math.abs(parseNum(this.value) - SWAPSRC.pips) > 1e-6) { SWAPSRC.live = false; renderSwapLive('manual'); } schedule(); });
+    $('#inSwapTenor').addEventListener('input', schedule);
+    $('#inSwapTenor').addEventListener('input', function () {
+      renderSwapBtn();
+      clearTimeout(tenorTimer);
+      if (SWAPSRC.mode !== 'manual') tenorTimer = setTimeout(fetchSwap, 500);
+    });
+    renderSwapBtn();
+    ['#inPrice', '#inDown', '#inTenor', '#inGrace', '#inRate', '#inFinRatio', '#inFinRate', '#inPremRate', '#inPremFin', '#inSwapPts', '#inSwapTenor'].forEach(function (id) {
+      $(id).addEventListener('input', schedule);
+      $(id).addEventListener('blur', function () {
+        var dec = (id === '#inPrice') ? 0 : (id === '#inTenor' || id === '#inGrace') ? 0 : 2;
+        this.value = fmtInput(parseNum(this.value), dec);
+        render();
+      });
+    });
+    $('#inStart').addEventListener('change', render);
+    $('#inFreq').addEventListener('change', render);
+    $('#inBasis').addEventListener('change', render);
+    $('#curSel').addEventListener('change', function () { setCurrency(this.value, true); });
+
+    $('#btnLive').addEventListener('click', function () { fetchFx(); });
+    $('#btnSwapLive').addEventListener('click', function () { fetchSwap(); });
+    $('#btnExport').addEventListener('click', function () { if (state.model) download(state.model); });
+    $('#btnPrint').addEventListener('click', function () { window.print(); });
+    $('#btnReset').addEventListener('click', reset);
+
+
+    /* FX wiring */
+    $('#fxBtn').addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = $('#fxMenu').hidden;
+      $('#fxMenu').hidden = !open;
+      this.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) renderFx();
+    });
+    $('#fxMenu').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      if (b.id === 'fxRefresh') fetchFx();
+      if (b.id === 'fxReset') { FX.manual = {}; syncFx(); renderFx(); render(); }
+    });
+    $('#fxMenu').addEventListener('change', function (e) {
+      var inp = e.target.closest('.fxi'); if (!inp) return;
+      var c = inp.getAttribute('data-cur');
+      var v = parseNum(inp.value);
+      if (v > 0) FX.manual[c] = v; else delete FX.manual[c];
+      syncFx(); renderFx(); render();
+    });
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.fxpick')) { $('#fxMenu').hidden = true; $('#fxBtn').setAttribute('aria-expanded', 'false'); }
+    });
+
+    applyI18n();
+    render();
+    setTimeout(fetchFx, 600);
+    setTimeout(fetchFx, 900);
+  }
+
+  var tenorTimer = null;
+  var timer = null;
+  function schedule() { clearTimeout(timer); timer = setTimeout(render, 120); }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+
+
+
+
+</script>
+</body>
+</html>
